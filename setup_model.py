@@ -477,7 +477,7 @@ class import_and_train_model:
     def run_ensemble_prediction_on_unseen(self, train_main, test_main, data_loader, name):
         classes = np.load(test_main.main_param_path + '/classes.npy')
         Ensemble_prob = []
-        im_names = data_loader.Filenames
+        im_names = data_loader.filenames
 
         if test_main.TTA == 'no':
             for i in range(len(test_main.model_path)):

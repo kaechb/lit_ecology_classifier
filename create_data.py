@@ -44,19 +44,20 @@ class CreateDataset:
         self.L = L
         self.df = LoadImages(datapath, L, resize_images, )
         self.Check()  # Some sanity checks on the dataset
-        self.CreateXy()  # Creates X and y, i.e. features and labels
-
-
-
-    def CreateXy(self):
-        """
-        Creates features and target
-        - removing the evidently junk columns.
-        - allowing to access images and features separately and confortably
-        """
         self.filenames = self.df.filename
         self.X = self.df.drop(columns=['classname', 'url', 'filename', 'file_size', 'timestamp'], errors='ignore')
         self.Ximage = self.X.npimage
+        # self.X_np  = np.stack(self.X['npimage'].values)
+        # # To store the data
+        # self.Data = [self.filenames,self.X_np]
+
+        # self.classes = np.load('./data/classes.npy')
+        # self.class_weights_tensor = torch.load('./data/class_weights_tensor.pt')
+        # data_train = self.Data[1].astype(np.float64)
+        # data_train = 255 * data_train
+        # self.X_train = data_train.astype(np.uint8)
+        # self.TTA = "yes"
+
 
     def Check(self):
         """ Basic checks on the dataset """
@@ -228,7 +229,7 @@ def LoadImage(filename, L=None, resize_images=None, show=False):
 
 
 
-def LoadImages(datapaths, L, resize_images=None, training_data=True):
+def LoadImages(datapaths, L, resize_images=None):
     """
     Loads images from specified directories, processes them, and returns a DataFrame containing
     the image data and filenames.
@@ -243,14 +244,13 @@ def LoadImages(datapaths, L, resize_images=None, training_data=True):
     df            - DataFrame with columns ['filename', 'npimage'] containing image data.
     """
     # Define pattern based on directory structure.
-    subfolder = 'training_data/' if training_data else ''
     file_patterns = ['*.jpg', '*.jpeg', '*.png', '*.tif', '*.tiff']
 
     # Generate list of image paths.
     image_paths = []
     for base_path in datapaths:
         for pattern in file_patterns:
-            image_paths.extend(glob.glob(os.path.join(base_path, subfolder, pattern)))
+            image_paths.extend(glob.glob(os.path.join(base_path, pattern)))
 
     # Load images and create DataFrame entries.
     data = []
