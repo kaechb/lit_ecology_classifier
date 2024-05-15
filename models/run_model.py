@@ -60,7 +60,7 @@ class run_model:
 
     def run_ensemble_prediction_on_unseen(self):
         classes = np.load(self.main_param_path + '/classes.npy')
-        ensemble_prob = []
+        Ensemble_prob = []
         im_names = self.test_data.filenames
         for i in range(len(self.model_path)):
 
@@ -68,24 +68,43 @@ class run_model:
             PATH = checkpoint_path + '/trained_model_' + self.finetuned + '.pth'
             checkpoint = torch.load(PATH, map_location=self.device)
             self.model.load_state_dict(checkpoint['model_state_dict'])
+            dataloaders=self.test_data.test_dataloader()
 
 
-            dataloader = self.test_data.test_dataloader()
+            prob = self.cls_predict_on_unseen(  dataloaders[0])
+            prob_1 = self.cls_predict_on_unseen(   dataloaders[1])
+            prob_2 = self.cls_predict_on_unseen(   dataloaders[2])
+            prob_3 = self.cls_predict_on_unseen(   dataloaders[3])
+
+            Ensemble_prob.append(prob)
+            Ensemble_prob.append(prob_1)
+            Ensemble_prob.append(prob_2)
+            Ensemble_prob.append(prob_3)
             probabilities = []
+        Ens_DEIT_prob_max = []
+        Ens_DEIT_label = []
+        Ens_DEIT = []
+        Ens_DEIT = gmean(Ensemble_prob)
+            # for dl in dataloader:
+            #     probs = self.cls_predict_on_unseen(dl)
+            #     probabilities.append(probs)
+            # ensemble_prob.append(torch.cat(probabilities).cpu())  # Concatenate all batch probabilities for this augmentation
 
-            for dl in dataloader:
-                probs = self.cls_predict_on_unseen(dl)
-                probabilities.append(probs)
-            ensemble_prob.append(torch.cat(probabilities).cpu())  # Concatenate all batch probabilities for this augmentation
 
 
-        print(ensemble_prob)
 
 
-        Ens_DEIT = gmean(ensemble_prob)
+
         print(Ens_DEIT.shape)
         Ens_DEIT_prob_max = Ens_DEIT.argmax(axis=1)  # The class that the classifier would bet on
-        Ens_DEIT_label = np.array([classes[Ens_DEIT_prob_max[i]] for i in range(len(Ens_DEIT_prob_max))],dtype=object)
+        Ens_DEIT_label = np.array([classes[Ens_DEIT_prob_max[i]] for i in range(len(Ens_DEIT_prob_max))],
+                                    dtype=object)
+        Ens_DEIT_corrected_label = copy.deepcopy(Ens_DEIT_label)
+        first_indices = Ens_DEIT.argsort()[:, -1]
+        Ens_confs = [Ens_DEIT[i][first_indices[i]] for i in range(len(first_indices))]
+        for i in range(len(Ens_confs)):
+            if Ens_confs[i] < self.threshold:
+                Ens_DEIT_corrected_label[i] = 'unknown'
         Ens_DEIT_label = Ens_DEIT_label.tolist()
         # Output the results
         self.output_results(im_names, Ens_DEIT_label)
@@ -99,7 +118,7 @@ class run_model:
 
         label_set, suffix =labels,''
         file_path = f'{base_filename}{suffix}.txt'
-        lines = [f'\n{img}------------------ {label}\n' for img, label in zip(im_names[0], label_set)]
+        lines = [f'\n{img}------------------ {label}\n' for img, label in zip(im_names, label_set)]
         with open(file_path, 'w') as f:
             f.writelines(lines)  # Ensure using writelines for proper line-by-line writing
 
