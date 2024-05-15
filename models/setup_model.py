@@ -3,8 +3,9 @@ import timm
 import torch
 import torch.nn as nn
 import numpy as np
+import copy
 def setup_model( architecture, add_layer, main_param_path, dropout_1,dropout_2, fc_node,
-                 last_layer_finetune,testing=False, **kwargs):
+                 last_layer_finetune,ensemble,finetuned,model_path,testing=False, **kwargs):
     classes = np.load(main_param_path + '/classes.npy')
     num_classes=len(np.unique(classes))
 
@@ -67,7 +68,12 @@ def setup_model( architecture, add_layer, main_param_path, dropout_1,dropout_2, 
     total_trainable_params = sum(
         p.numel() for p in model.parameters() if p.requires_grad)
     print(f"{total_trainable_params:,} training parameters.")
-
+    if ensemble:
+        model = [copy.deepcopy(model) for i in range(len( model_path))]
+        i=0
+        for m in model:
+            m.load_state_dict(torch.load(model_path[i] + '/trained_model_' + finetuned + '.pth',map_location="cuda" if torch.cuda.is_available() else "cpu")['model_state_dict'])
+            i+=1
 
     return model
 

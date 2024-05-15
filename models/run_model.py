@@ -99,40 +99,4 @@ class run_model:
         Ens_DEIT_prob_max = Ens_DEIT.argmax(axis=1)  # The class that the classifier would bet on
         Ens_DEIT_label = np.array([classes[Ens_DEIT_prob_max[i]] for i in range(len(Ens_DEIT_prob_max))],
                                     dtype=object)
-        Ens_DEIT_corrected_label = copy.deepcopy(Ens_DEIT_label)
-        first_indices = Ens_DEIT.argsort()[:, -1]
-        Ens_confs = [Ens_DEIT[i][first_indices[i]] for i in range(len(first_indices))]
-        for i in range(len(Ens_confs)):
-            if Ens_confs[i] < self.threshold:
-                Ens_DEIT_corrected_label[i] = 'unknown'
-        Ens_DEIT_label = Ens_DEIT_label.tolist()
-        # Output the results
-        self.output_results(im_names, Ens_DEIT_label)
-
-
-    def output_results(self, im_names, labels):
-        """Helper function to output prediction results."""
-        name2 = 'geo_mean_'
-        base_filename = f'{self.test_outpath}/Ensemble_models_Plankiformer_predictions_{name2}{self.finetuned}'
-        print(f'I am using threshold value as : {self.threshold}' if self.threshold > 0 else 'I am using default value as threshold i.e. 0')
-
-        label_set, suffix =labels,''
-        file_path = f'{base_filename}{suffix}.txt'
-        lines = [f'\n{img}------------------ {label}\n' for img, label in zip(im_names, label_set)]
-        with open(file_path, 'w') as f:
-            f.writelines(lines)  # Ensure using writelines for proper line-by-line writing
-
-
-
-def accuracy(output, target):
-    with torch.no_grad():
-        batch_size = target.size(0)
-        _, pred = output.topk(1, 1, True, True)
-        pred = pred.t()
-        correct = pred.eq(target.view(1, -1).expand_as(pred))
-        res = []
-        correct_k = correct[:1].flatten().float().sum(0, keepdim=True)
-        res.append(correct_k.mul_(100.0 / batch_size))
-        return res
-
-
+        Ens_DEIT_correcte

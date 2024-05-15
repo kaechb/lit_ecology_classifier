@@ -14,7 +14,7 @@ def argparser():
     # Model configuration and training options
     parser.add_argument('--aug', type=bool, default=True, help='Enable training augmentation')
     parser.add_argument('--L', type=int, default=128, help='Image size ')
-    parser.add_argument('--finetuned', type=int, default=1, help='Choose "0" or "1" or "2" for finetuning')
+    parser.add_argument('--finetuned', choices=["original","tuned","finetuned"], default="tuned", help='Choose "0" or "1" or "2" for finetuning')
     parser.add_argument('--testSplit', type=float, default=0.2, help='Fraction of data to use for testing')
     parser.add_argument('--class_select', default=None, help='Specific class to select for training/testing')
     parser.add_argument('--classifier', default='multi', help='Type of classifier to use')
@@ -40,7 +40,7 @@ def argparser():
     parser.add_argument('--use_gpu', type=bool, default=True, help='Use GPU for training')
     parser.add_argument('--finetune', type=int, default=1, help='Enable fine-tuning')
     parser.add_argument('--finetune_epochs', type=int, default=400, help='Number of epochs for fine-tuning')
-    parser.add_argument('--ensemble', type=int, default=2, help='Enable model ensembling')
+    parser.add_argument('--ensemble', type=bool, default=True, help='Enable model ensembling')
     parser.add_argument('--threshold', type=float, default=0.0, help='Threshold value for predictions')
     parser.add_argument('--TTA', type=bool, default=True, help='Enable test-time augmentation')
     parser.add_argument('--predict', default=None, help='Predict using the model')
