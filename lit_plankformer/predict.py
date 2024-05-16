@@ -8,7 +8,7 @@ import lightning as pl
 from time import time
 import numpy as np
 from models.model import Plankformer
-from data.datamodule import ZooplanktonDataModule
+from data.datamodule import PlanktonDataModule
 from helpers.argparser import argparser
 
 import torch

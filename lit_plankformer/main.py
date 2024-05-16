@@ -7,7 +7,7 @@ import sys
 import lightning as pl
 from time import time
 from .models.model import Plankformer
-from .data.datamodule import ZooplanktonDataModule
+from .data.datamodule import PlanktonDataModule
 from .helpers.argparser import argparser
 
 import torch
@@ -30,13 +30,13 @@ if __name__ == '__main__':
     # Parse Arguments for training
     parser = argparser()
     args = parser.parse_args()
-    default_scratch = os.getenv('SCRATCH')
+    default_scratch = "/beegfs/desy/user/kaechben/eawag"
     args.train_outpath = os.path.join(default_scratch, args.train_outpath)
     # Create Output Directory if it doesn't exist
     pathlib.Path(args.train_outpath).mkdir(parents=True, exist_ok=True)
 
     # Initialize the Data Module
-    datamodule = ZooplanktonDataModule(
+    datamodule = PlanktonDataModule(
         datapath=args.datapath,
         L=args.L,
         resize_images=args.resize_images,
@@ -76,10 +76,10 @@ if __name__ == '__main__':
         mode='min'
     ))
     # Initialize the Trainer
-    trainer = pl.Trainer(logger=logger, max_epochs=args.max_epochs, callbacks=callbacks, check_val_every_n_epoch=10)
+    trainer = pl.Trainer(logger=logger, max_epochs=args.max_epochs, callbacks=callbacks, check_val_every_n_epoch=10,enable_progress_bar=0)
 
     # Train the model
-    trainer.fit(model, datamodule=datamodule)
+    trainer.fit(model, datamodule=datamodule,)
 
     # Calculate and log the total time taken for training
     total_secs = -1 if time_begin is None else (time() - time_begin)

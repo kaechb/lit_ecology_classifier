@@ -4,7 +4,7 @@ def argparser():
     parser = argparse.ArgumentParser(description='Configure and run the machine learning model for image classification.')
 
     # Paths and directories
-    parser.add_argument('--datapath', nargs='*', default='/scratch/snx3000/bkch/training/Phytolake1.tar', help='train data path, should be tar')
+    parser.add_argument('--datapath', nargs='*', default='/beegfs/desy/user/kaechben/eawag/Phytolake1.tar', help='train data path, should be tar')
     parser.add_argument('--train_outpath', default='train_out', help='Output path for training artifacts')
     parser.add_argument('--test_path', nargs='*', default=['images'], help="Data Directory")
     parser.add_argument('--main_param_path', default='./params/', help="Main directory where the training parameters are saved")
@@ -29,10 +29,10 @@ def argparser():
 
     # Deep learning model specifics
     parser.add_argument('--architecture', default='beit', help='Model architecture')
-    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training')
-    parser.add_argument('--max_epochs', type=int, default=50, help='Number of epochs to train')
+    parser.add_argument('--batch_size', type=int, default=1024, help='Batch size for training')
+    parser.add_argument('--max_epochs', type=int, default=200, help='Number of epochs to train')
 
-    parser.add_argument('--lr', type=float, default=0.1e-5, help='Learning rate for training')
+    parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate for training')
     parser.add_argument('--warmup', type=int, default=0, help='Warmup epochs')
     parser.add_argument('--weight_decay', type=float, default=0.03, help='Weight decay rate')
     parser.add_argument('--clip_grad_norm', type=float, default=0, help='Clip gradient norms')

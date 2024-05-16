@@ -90,7 +90,7 @@ class CreatePytorchDataset(Dataset):
         filenames = self.filenames[index]
         return self.transform(image),filenames
 
-class ZooplanktonDataModule(LightningDataModule):
+class PlanktonDataModule(LightningDataModule):
     def __init__(self, datapath, L=128, resize_images=None, TTA=True, batch_size=32, dataset=""):
         super().__init__()
         self.datapath = datapath
@@ -106,7 +106,7 @@ class ZooplanktonDataModule(LightningDataModule):
         # Load and prepare data
 
         if stage == 'fit':
-            full_dataset = TarImageDataset(self.datapath,self.dataset)
+            full_dataset = TarImageDataset(self.datapath,dataset=self.dataset)
             train_size = int(0.8 * len(full_dataset))
             val_size = len(full_dataset) - train_size
             self.train_dataset, self.val_dataset = random_split(full_dataset, [train_size, val_size])

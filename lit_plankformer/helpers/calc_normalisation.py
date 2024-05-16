@@ -2,14 +2,14 @@ import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import sys
-from ..data.datamodule import ZooplanktonDataModule
+from ..data.datamodule import PlanktonDataModule
 # Define a transform without normalization
 transform = transforms.Compose([
     transforms.ToTensor()
 ])
 
 # Load the dataset
-dm = ZooplanktonDataModule('/scratch/snx3000/bkch/training/Phytolake1.tar',dataset="phyto")
+dm = PlanktonDataModule('/scratch/snx3000/bkch/training/Phytolake1.tar',dataset="phyto")
 dm.setup('fit')
 dataloader = dm.train_dataloader()
 # Function to calculate mean and standard deviation

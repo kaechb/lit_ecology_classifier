@@ -41,7 +41,7 @@ class Plankformer(LightningModule):
             list: List of schedulers.
         """
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.hparams.lr)
-        scheduler = OneCycleLR(optimizer, max_lr=1e-3, steps_per_epoch=len(self.datamodule.train_dataloader()), epochs=self.trainer.max_epochs)
+        scheduler = OneCycleLR(optimizer, max_lr=self.hparams.lr, steps_per_epoch=len(self.datamodule.train_dataloader())-1, epochs=self.trainer.max_epochs)
         return [optimizer], [scheduler]
 
     def load_datamodule(self, datamodule):
@@ -61,12 +61,14 @@ class Plankformer(LightningModule):
         Returns:
             torch.Tensor: Computed loss for the batch.
         """
+        sch = self.lr_schedulers() # this schedules the lr
+        sch.step()
         x, y = batch
         logits = self(x)
         loss = self.loss(logits, y)
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
         acc = (logits.argmax(dim=1) == y).float().mean()
-        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
         return loss
     def validation_step(self, batch, batch_idx):
         """
@@ -80,9 +82,9 @@ class Plankformer(LightningModule):
         x, y = batch
         logits = self(x)
         loss = self.loss(logits, y)
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
         acc = (logits.argmax(dim=1) == y).float().mean()
-        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
 
 
     def on_test_epoch_start(self) -> None:
