@@ -44,3 +44,11 @@ def ResizeWithoutProportions(im, desired_size):
     new_im = im.resize((desired_size, desired_size), Image.LANCZOS)
     rescaled = 1
     return new_im, rescaled
+
+def get_padding(image):
+    w, h = image.size
+    max_wh = max(w, h)
+    pad_w = (max_wh - w) // 2
+    pad_h = (max_wh - h) // 2
+    return (pad_w, pad_h, pad_w, pad_h)  # Padding for left, top, right, bottom
+

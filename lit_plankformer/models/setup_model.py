@@ -1,12 +1,11 @@
 
 import timm
 import torch
-import torch.nn as nn
 import numpy as np
 import copy
-def setup_model( architecture, add_layer, main_param_path, dropout_1,dropout_2, fc_node,
-                 last_layer_finetune,ensemble,finetuned,model_path,testing=False, **kwargs):
-    classes = np.load(main_param_path + '/classes.npy')
+def setup_model( architecture,  main_param_path,
+                 ensemble,finetuned,model_path,dataset,testing=False, **kwargs):
+    classes = np.load(main_param_path +"/"+dataset+ '/classes.npy')
     num_classes=len(np.unique(classes))
 
     if architecture == 'deit':
@@ -49,48 +48,37 @@ def setup_model( architecture, add_layer, main_param_path, dropout_1,dropout_2, 
         print('This model cannot be imported. Please check from the list of models')
 
     # additional layers
-    if add_layer:
-        in_features = model.get_classifier()[-1].in_features if architecture == 'deit' else model.get_classifier().in_features
 
-        pretrained_layers = list(model.children())[:-2] if architecture == 'deit' else list(model.children())[:-1]
-        additional_layers = nn.Sequential(
-                                    nn.Dropout(p=dropout_1),
-                                    nn.Linear(in_features=in_features, out_features=fc_node),
-                                    nn.ReLU(inplace=True),
-                                    nn.Dropout(p=dropout_2),
-                                    nn.Linear(in_features=fc_node, out_features=num_classes),
-                                    )
-        model = nn.Sequential(*pretrained_layers, additional_layers)
-    set_trainable_params(model,add_layer, last_layer_finetune)
+    set_trainable_params(model)
     # total parameters and trainable parameters
     total_params = sum(p.numel() for p in model.parameters())
     print(f"{total_params:,} total parameters.")
     total_trainable_params = sum(
         p.numel() for p in model.parameters() if p.requires_grad)
     print(f"{total_trainable_params:,} training parameters.")
-    if ensemble:
-        model = [copy.deepcopy(model) for i in range(len( model_path))]
-        i=0
-        for m in model:
-            m.load_state_dict(torch.load(model_path[i] + '/trained_model_' + finetuned + '.pth',map_location="cuda" if torch.cuda.is_available() else "cpu")['model_state_dict'])
-            i+=1
-
+    if  testing:
+        if ensemble:
+            model = [copy.deepcopy(model) for i in range(len( model_path))]
+        else:
+            model = [model]
+            i=0
+            for m in model:
+                m.load_state_dict(torch.load(model_path[i] + '/trained_model_' + finetuned + '.pth',map_location="cuda" if torch.cuda.is_available() else "cpu")['model_state_dict'])
+                i+=1
     return model
 
-def set_trainable_params(model, add_layer, last_layer_finetune):
+def set_trainable_params(model):
     """
       This function sets the trainable parameters of the model,
       if its last_layer_finetune is set to True, then only the last layer is trainable
     """
     n_layer = 0
-    if last_layer_finetune:
-        for param in model.parameters():
-            n_layer += 1
-            param.requires_grad = False
+
+    for param in model.parameters():
+        n_layer += 1
+        param.requires_grad = False
 
     for i, param in enumerate(model.parameters()):
 
         if i + 1 > n_layer - 2:
-            param.requires_grad = True
-        elif (i + 1 > n_layer - 5) and add_layer:
             param.requires_grad = True

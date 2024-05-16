@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from helpers.image_edits import ResizeWithoutProportions, ResizeWithProportions
+from ..helpers.image_edits import ResizeWithoutProportions, ResizeWithProportions
 
 
 def load_image(filename, L=None, resize_images=None, show=False):
