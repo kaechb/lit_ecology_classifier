@@ -43,7 +43,4 @@ def argparser():
     parser.add_argument('--ensemble', type=bool, default=True, help='Enable model ensembling')
     parser.add_argument('--TTA', type=bool, default=True, help='Enable test-time augmentation')
     parser.add_argument('--predict', default=None, help='Predict using the model')
-    parser.add_argument('--testing', type=bool, default=False, help='Set this to True if in testing mode, False for training')
-
-
-    return parser
+    parser.add_argument('--testing', type=bool, default=False, help='Set this to True if in testing mode, Fal
