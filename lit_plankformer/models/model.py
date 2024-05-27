@@ -1,11 +1,12 @@
 import torch
 import numpy as np
 from lightning import LightningModule
-
-from torch.optim.lr_scheduler import OneCycleLR
+import sklearn
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from ..models.setup_model import setup_model
-from ..helpers.helpers import gmean, output_results
-
+from ..helpers.helpers import gmean, output_results, plot_confusion_matrix, CosineWarmupScheduler, FocalLoss, plot_score_distributions
+from sklearn.metrics import f1_score, balanced_accuracy_score
+import matplotlib.pyplot as plt
 
 class Plankformer(LightningModule):
     def __init__(self, **hparams):
@@ -17,9 +18,10 @@ class Plankformer(LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = setup_model(**self.hparams)
-        self.classes = np.load(self.hparams.main_param_path +self.hparams.dataset+ '/classes.npy')
-        self.class_weights = torch.load(self.hparams.main_param_path+"/" +self.hparams.dataset+"/" + '/class_weights_tensor.pt').float()
-        self.loss = torch.nn.CrossEntropyLoss(weight=self.class_weights)
+
+        self.class_weights = torch.load(self.hparams.main_param_path+"/" +self.hparams.dataset+"/" + '/class_weights.pt').float()
+        print("hparams",list(self.hparams))
+        self.loss = torch.nn.CrossEntropyLoss(weight=self.class_weights if self.hparams.balance_weight else None) if not "loss" in list(self.hparams) or not self.hparams.loss=="focal" else FocalLoss(alpha=self.class_weights if self.hparams.balance_weight else None,gamma=self.hparams.gamma)
 
     def forward(self, x):
         """
@@ -31,8 +33,6 @@ class Plankformer(LightningModule):
         """
         return self.model(x)
 
-
-
     def configure_optimizers(self):
         """
         Configure optimizers and learning rate schedulers.
@@ -40,9 +40,19 @@ class Plankformer(LightningModule):
             list: List of optimizers.
             list: List of schedulers.
         """
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.hparams.lr)
-        scheduler = OneCycleLR(optimizer, max_lr=self.hparams.lr, steps_per_epoch=len(self.datamodule.train_dataloader())-1, epochs=self.trainer.max_epochs)
-        return [optimizer], [scheduler]
+
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.hparams.lr)
+        if self.hparams.use_scheduler:
+            print("max_iters:",self.trainer.max_epochs*len(self.datamodule.train_dataloader()))
+            scheduler = CosineWarmupScheduler(optimizer, warmup=3*len(self.datamodule.train_dataloader()), max_iters=self.trainer.max_epochs*len(self.datamodule.train_dataloader()))
+            lr_scheduler_config = {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1,
+            }
+            return [optimizer], [lr_scheduler_config]
+        else:
+            return optimizer
 
     def load_datamodule(self, datamodule):
         """
@@ -51,6 +61,10 @@ class Plankformer(LightningModule):
             datamodule (LightningDataModule): Data module to load.
         """
         self.datamodule = datamodule
+        self.class_map = self.datamodule.class_map
+        self.inverted_class_map = dict(sorted({v: k for k, v in self.class_map.items()}.items()))
+
+
 
     def training_step(self, batch, batch_idx):
         """
@@ -61,15 +75,19 @@ class Plankformer(LightningModule):
         Returns:
             torch.Tensor: Computed loss for the batch.
         """
-        sch = self.lr_schedulers() # this schedules the lr
-        sch.step()
+
         x, y = batch
         logits = self(x)
         loss = self.loss(logits, y)
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=False, prog_bar=True, logger=True,sync_dist=True)
         acc = (logits.argmax(dim=1) == y).float().mean()
-        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        self.log('train_acc', acc, on_step=True, on_epoch=False, prog_bar=True, logger=True,sync_dist=True)
         return loss
+
+    def on_validation_epoch_start(self):
+        self.val_step_outputs = []
+        self.val_step_targets = []
+        self.val_step_logits = []
     def validation_step(self, batch, batch_idx):
         """
         Perform a validation step.
@@ -79,13 +97,61 @@ class Plankformer(LightningModule):
         Returns:
             dict: Dictionary containing the loss and predictions.
         """
-        x, y = batch
-        logits = self(x)
-        loss = self.loss(logits, y)
-        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
-        acc = (logits.argmax(dim=1) == y).float().mean()
-        self.log('val_acc', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        if self.hparams.TTA:
+            print(batch)
+            x=torch.cat([batch[0][str(i*90)] for i in range(4)],dim=0)
+            y = batch[1]
+            logits = self(x).softmax(dim=1)
+            logits = torch.stack(torch.chunk(logits, 4, dim=0))
+            logits=gmean(logits,dim=0)
+        else:
+            x, y = batch
+            logits = self(x)
 
+        loss = self.loss(logits, y)
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        acc = (logits.argmax(dim=1) == y).float().mean()
+        self.log('val_acc', acc, on_step=False, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        f1 = f1_score(y.cpu(), logits.argmax(dim=1).cpu(), average='weighted')
+        self.log('val_f1', f1, on_step=False, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+
+        self.val_step_logits.append(logits.softmax(dim=1).cpu())
+        self.val_step_outputs.append(logits.cpu().softmax(dim=1).argmax(dim=1))
+        self.val_step_targets.append(y.cpu())
+
+        return {'val_loss': loss, 'val_acc': acc, 'val_f1': f1, 'logits': logits, 'y': y}
+
+    def on_validation_epoch_end(self):
+        """
+        Aggregate outputs and log the confusion matrix at the end of the validation epoch.
+        Args:
+            outputs (list): List of dictionaries returned by validation_step.
+        """
+        all_scores = torch.cat(self.val_step_logits)
+        all_preds = torch.cat(self.val_step_outputs)
+        all_labels = torch.cat(self.val_step_targets)
+        fig_score=plot_score_distributions(all_scores, all_preds, self.inverted_class_map.values(),all_labels)
+        balanced_acc= balanced_accuracy_score(all_labels.cpu().numpy(), all_preds.cpu().numpy())
+        self.log('val_balanced_acc', balanced_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+        false_positives = torch.sum((all_labels == 0) & (all_preds != 0))/torch.sum(all_labels == 0)
+        self.log('val_false_positives', false_positives.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True,sync_dist=True)
+
+        # Log the confusion matrix to wandb if use_wandb is true
+        if self.hparams.use_wandb:
+
+
+            fig,fig2=plot_confusion_matrix(all_labels, all_preds,self.inverted_class_map.values())
+            plt.close(fig)
+            plt.close(fig2)
+
+
+            self.logger.log_image(key=f"score_distributions",images=[fig_score],step=self.current_epoch)
+
+            self.logger.log_image(key="confusion_matrix",images=[fig],step=self.current_epoch)
+            self.logger.log_image(key="confusion_matrix_norm",images=[fig2],step=self.current_epoch)
+        else:
+
+            fig_score.savefig(f"score_distributions.png")
 
     def on_test_epoch_start(self) -> None:
         """
@@ -93,6 +159,8 @@ class Plankformer(LightningModule):
         """
         self.probabilities = []
         self.filenames = []
+
+
         return super().on_test_epoch_start()
 
     def test_step(self, batch, batch_idx):
@@ -132,7 +200,7 @@ class Plankformer(LightningModule):
         Hook to be called at the end of the test epoch.
         """
         max_index = torch.cat(self.probabilities).argmax(axis=1)
-        pred_label = np.array(self.classes[max_index.cpu().numpy()], dtype=object)
-        output_results(self.hparams.test_outpath,self.hparams.finetuned,self.filenames, pred_label)
+        pred_label = np.array(self.inverted_class_map[max_index.cpu().numpy()], dtype=object)
+        output_results(self.hparams.test_outpath,self.filenames, pred_label)
         return super().on_test_epoch_end()
 

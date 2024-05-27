@@ -6,112 +6,61 @@ import numpy as np
 import torch
 from lightning import LightningDataModule
 from lightning.pytorch.utilities.combined_loader import CombinedLoader
-from PIL import Image
-from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision import transforms
-from torchvision.transforms import Compose, RandomRotation, Resize, ToPILImage, ToTensor, Lambda, Pad
+from ..data.tardataset import TarImageDataset
+from ..data.imagedataset import ImageDataset
 
-from ..helpers.load_images import load_images
-from ..helpers.image_edits import get_padding
+from torch.utils.data import DataLoader, Dataset, random_split, DistributedSampler
+import os
 
-class TarImageDataset(Dataset):
-    def __init__(self, tar_path,dataset="phyto",use_data_moments=True):
-        self.tar_path = tar_path
-        if use_data_moments:
-            mean, std= [-1.8272, -1.7527, -1.5727], [0.7074, 0.6921, 0.5333] # calculated from the phyto dataset - see calc_normalisation.py
-        else:
-            mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225] # imagenet normalization
-        self.transform = transforms.Compose([
-            Lambda(lambda img: Pad(get_padding(img), fill=0, padding_mode='constant')(img)),  # Add dynamic padding
-            transforms.Resize((224, 224)),                 # Resize shortest side to 256, preserving aspect ratio
-            transforms.RandomHorizontalFlip(),             # Randomly flip the image horizontally
-            transforms.ToTensor(),                         # Convert the image to a tensor
-            transforms.Normalize(mean, std)  # Normalize the image #TODO calculate normalization
-        ])
-        self.image_infos = self._load_image_infos()
+def custom_collate_fn(batch):
+    batch_images = {rot: [] for rot in ["0",  "90",  "180", "270"]}
+    batch_labels = []
 
-        self.class_map = np.load(f'./params/{dataset}/classes.npy', allow_pickle=True)
-        self.class_map = {class_name: idx for idx, class_name in enumerate(self.class_map)}
+    for rotated_images, label in batch:
+        for rot in batch_images:
+            batch_images[rot].append(rotated_images[rot])
+        batch_labels.append(label)
 
-    def _load_image_infos(self):
-        image_infos = []
-        with tarfile.open(self.tar_path, 'r') as tar:
-            for member in tar.getmembers():
-                if member.isfile() and member.name.lower().endswith(('jpg', 'jpeg', 'png')):
-                    image_infos.append(member)
-        return image_infos
+    batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
+    batch_labels = torch.tensor(batch_labels)
 
-    def __len__(self):
-        return len(self.image_infos)
+    return batch_images, batch_labels
 
-    def __getitem__(self, idx):
-        with tarfile.open(self.tar_path, 'r') as tar:
-            image_info = self.image_infos[idx]
-            image_file = tar.extractfile(image_info)
-            image = Image.open(io.BytesIO(image_file.read())).convert('RGB')
-
-            if self.transform:
-                image = self.transform(image)
-
-            # Assuming the labels are part of the filename, you can modify this according to your needs
-            label = self._get_label_from_filename(image_info.name)
-
-            return image, label
-
-    def _get_label_from_filename(self, filename):
-        # Custom function to extract label from filename
-        # Assuming labels are encoded in the filename, e.g., "cat.1234.jpg"
-        label = filename.split('/')[1]
-        label = self.class_map[label]
-        return label
-
-    def shuffle(self):
-        random.shuffle(self.image_infos)
-
-class CreatePytorchDataset(Dataset):
-    """
-        Dataset that includes a rotation by 0,90,180,270 degrees depending on the value of rot
-        This is used for testing, where we want to apply test-time augmentation
-    """
-    def __init__(self, X,filenames, rot=0):
-        self.X = X
-        self.transform = Compose([
-            ToPILImage(),
-            Resize(224),
-            RandomRotation(degrees=(90*rot, 90*rot)),
-            ToTensor()
-        ])
-        self.filenames = filenames
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, index):
-        image = self.X[index]
-        filenames = self.filenames[index]
-        return self.transform(image),filenames
 
 class PlanktonDataModule(LightningDataModule):
-    def __init__(self, datapath, L=128, resize_images=None, TTA=True, batch_size=32, dataset=""):
+    def __init__(self, datapath, L=128, resize_images=None, TTA=True, batch_size=32, dataset="",
+                 use_data_moments=True,weighted_sampler=False,testing=False,calc_normalisation=False, random_rot=False,
+                 AugMix=False, use_multi=True,ood=False, priority_classes=[], rest_classes=[],splits=[0.7,0.15],**kwargs):
         super().__init__()
         self.datapath = datapath
         self.L = L
         self.resize_images = resize_images
-        self.TTA = TTA
+        self.TTA = TTA if testing else False
         self.batch_size = batch_size
-        self.classes = np.load(f'./params/{dataset}/classes.npy')
-        self.class_weights_tensor = torch.load(f'./params/{dataset}/class_weights_tensor.pt')
-        self.dataset=dataset
+        self.dataset = dataset
+        self.use_data_moments = use_data_moments
+        self.calc_normalisation = calc_normalisation
+        self.weighted_sampler = weighted_sampler
+        self.random_rot = random_rot
+        self.AugMix = AugMix
+        self.use_multi = use_multi
+        self.ood=ood
+        self.priority_classes = priority_classes
+        self.rest_classes = rest_classes
+        self.train_split, self.val_split = splits
 
     def setup(self, stage=None):
-        # Load and prepare data
+        if stage == 'fit' or stage == "test":
+            full_dataset = TarImageDataset(self.datapath, self.dataset, self.use_data_moments, random_rot=self.random_rot, TTA=self.TTA,train=True,calc_normalisation=self.calc_normalisation,AugMix=self.AugMix,ood=self.ood,priority_classes=self.priority_classes,rest_classes=self.rest_classes)
+            train_size = int(self.train_split * len(full_dataset))
+            val_size =  int(self.val_split * len(full_dataset))
+            test_size = len(full_dataset) - train_size - val_size
+            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size,test_size],generator=torch.Generator().manual_seed(42))
+            self.class_map = self.train_dataset.dataset.class_map
+            self.val_dataset.train = False
+            self.test_dataset.train = False
 
-        if stage == 'fit':
-            full_dataset = TarImageDataset(self.datapath,dataset=self.dataset)
-            train_size = int(0.8 * len(full_dataset))
-            val_size = len(full_dataset) - train_size
-            self.train_dataset, self.val_dataset = random_split(full_dataset, [train_size, val_size])
-
-        elif stage == 'test' or stage is None:
+        elif stage == 'predict':
             df = load_images(self.datapath, self.L, self.resize_images)
             self.filenames = df.filename
             # Basic checks on the dataset
@@ -119,9 +68,11 @@ class PlanktonDataModule(LightningDataModule):
             X_np = np.stack(df['npimage'].values).astype(np.float64)
             X_np = (255 * X_np).astype(np.uint8)
             if self.TTA:
-                self.test_dataset = [CreatePytorchDataset(X_np, rot=i,filenames=df.filename) for i in range(0,4)]
+                self.test_dataset = [ImageDataset(X_np, rot=i,filenames=df.filename) for i in range(0,4)]
             else:
-                self.test_dataset = CreatePytorchDataset(X_np,df.filename)
+                self.test_dataset = ImageDataset(X_np,df.filename)
+
+
 
     def check_format(self, df):
         if df.isnull().any().any():
@@ -130,26 +81,37 @@ class PlanktonDataModule(LightningDataModule):
             raise ValueError("Images have the incorrect shape")
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
+        sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=(sampler is None), sampler=sampler, num_workers=4, pin_memory=True, drop_last=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True, drop_last=False)
+        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1  and self.use_multi else None
+        loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False)
+        if self.TTA:
+            loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False, collate_fn=custom_collate_fn)
+        return loader
 
     def test_dataloader(self):
-
+        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1  and self.use_multi else None
         if self.TTA:
-            loader = CombinedLoader({rot : DataLoader(ds, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True,drop_last=False) for rot,ds in zip(["0","90","180","270"],self.test_dataset)})
+            loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False, collate_fn=custom_collate_fn)
         else:
             loader = DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True,drop_last=False)
         return loader
 
 if __name__ == '__main__':
     import os
-    dm = ZooplanktonDataModule('/scratch/snx3000/bkch/training/Phytolake1.tar',dataset="phyto")
+    dm = PlanktonDataModule('/beegfs/desy/user/kaechben/eawag/training',dataset="phyto",use_data_moments=False)
     dm.setup('fit')
     test_loader = dm.train_dataloader()
     k=0
     for i in test_loader:
         print(i[0].shape,len(i[1]))
-        k+=i[0].shape[0]
+        for im in i[0]:
+            import matplotlib.pyplot as plt
+            plt.imshow(im.permute(1, 2, 0).numpy())
+            plt.axis('off')  # Turn off axis
+            plt.savefig(f"images/image_{k}.png", bbox_inches='tight', pad_inches=0)
+            k+=1
+        break
     print("number of images",k)
