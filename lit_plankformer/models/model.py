@@ -1,12 +1,13 @@
-import torch
-import numpy as np
-from lightning import LightningModule
-import sklearn
-from torch.optim.lr_scheduler import CosineAnnealingLR
-from ..models.setup_model import setup_model
-from ..helpers.helpers import gmean, output_results, plot_confusion_matrix, CosineWarmupScheduler, FocalLoss, plot_score_distributions
-from sklearn.metrics import f1_score, balanced_accuracy_score
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from lightning import LightningModule
+from sklearn.metrics import balanced_accuracy_score, f1_score
+from ..helpers.helpers import (CosineWarmupScheduler, FocalLoss, gmean,
+                               output_results, plot_confusion_matrix,
+                               plot_score_distributions)
+from ..models.setup_model import setup_model
+
 
 class Plankformer(LightningModule):
     def __init__(self, **hparams):

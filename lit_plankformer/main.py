@@ -1,20 +1,23 @@
 ###########
 # IMPORTS #
 ###########
+import json
+import logging
 import os
 import pathlib
 import sys
-import lightning as pl
 from time import time
-from .models.model import Plankformer
+
+import lightning as pl
+import torch
+from lightning.pytorch.callbacks import (EarlyStopping, LearningRateMonitor,
+                                         ModelCheckpoint, ModelSummary,
+                                         StochasticWeightAveraging)
+from lightning.pytorch.loggers import CSVLogger, WandbLogger
+
 from .data.datamodule import PlanktonDataModule
 from .helpers.argparser import argparser
-import json
-import torch
-import logging
-from lightning.pytorch.loggers import WandbLogger, CSVLogger
-from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint, StochasticWeightAveraging, ModelSummary, EarlyStopping
-from lightning.pytorch.tuner import Tuner
+from .models.model import Plankformer
 
 # Start timing the script
 time_begin = time()

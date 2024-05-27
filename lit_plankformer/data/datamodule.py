@@ -1,16 +1,11 @@
-import io
-import random
-import tarfile
-
-import numpy as np
 import torch
 from lightning import LightningDataModule
 from lightning.pytorch.utilities.combined_loader import CombinedLoader
-from ..data.tardataset import TarImageDataset
-from ..data.imagedataset import ImageDataset
+from torch.utils.data import (DataLoader, Dataset, DistributedSampler,
+                              random_split)
 
-from torch.utils.data import DataLoader, Dataset, random_split, DistributedSampler
-import os
+from ..data.tardataset import TarImageDataset
+
 
 def custom_collate_fn(batch):
     batch_images = {rot: [] for rot in ["0",  "90",  "180", "270"]}
@@ -28,19 +23,16 @@ def custom_collate_fn(batch):
 
 
 class PlanktonDataModule(LightningDataModule):
-    def __init__(self, datapath, L=128, resize_images=None, TTA=True, batch_size=32, dataset="",
-                 use_data_moments=True,weighted_sampler=False,testing=False,calc_normalisation=False, random_rot=False,
+    def __init__(self, datapath, L=128, TTA=True, batch_size=32, dataset="",
+                 use_data_moments=True,testing=False,calc_normalisation=False, random_rot=False,
                  AugMix=False, use_multi=True,ood=False, priority_classes=[], rest_classes=[],splits=[0.7,0.15],**kwargs):
         super().__init__()
         self.datapath = datapath
-        self.L = L
-        self.resize_images = resize_images
         self.TTA = TTA if testing else False
         self.batch_size = batch_size
         self.dataset = dataset
         self.use_data_moments = use_data_moments
         self.calc_normalisation = calc_normalisation
-        self.weighted_sampler = weighted_sampler
         self.random_rot = random_rot
         self.AugMix = AugMix
         self.use_multi = use_multi
@@ -60,25 +52,6 @@ class PlanktonDataModule(LightningDataModule):
             self.val_dataset.train = False
             self.test_dataset.train = False
 
-        elif stage == 'predict':
-            df = load_images(self.datapath, self.L, self.resize_images)
-            self.filenames = df.filename
-            # Basic checks on the dataset
-            self.check_format(df)
-            X_np = np.stack(df['npimage'].values).astype(np.float64)
-            X_np = (255 * X_np).astype(np.uint8)
-            if self.TTA:
-                self.test_dataset = [ImageDataset(X_np, rot=i,filenames=df.filename) for i in range(0,4)]
-            else:
-                self.test_dataset = ImageDataset(X_np,df.filename)
-
-
-
-    def check_format(self, df):
-        if df.isnull().any().any():
-            raise ValueError("There are NaN values in the data.")
-        if 'npimage' in df.columns and df.npimage.iloc[0].shape != (self.L, self.L, 3):
-            raise ValueError("Images have the incorrect shape")
 
     def train_dataloader(self):
         sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None

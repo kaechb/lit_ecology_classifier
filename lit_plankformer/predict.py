@@ -35,7 +35,7 @@ if __name__ == '__main__':
     pathlib.Path(args.test_outpath).mkdir(parents=True, exist_ok=True)
 
     # Initialize the Data Module
-    data_module = ZooplanktonDataModule(
+    data_module = PlanktonDataModule(
         datapath=args.test_path,
         L=args.L,
         resize_images=args.resize_images,

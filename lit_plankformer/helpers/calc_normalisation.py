@@ -1,21 +1,11 @@
 import torch
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-import sys
+
 from ..data.datamodule import PlanktonDataModule
 
-# Define a transform without normalization
-transform = transforms.Compose([
-    transforms.ToTensor()
-])
-
-# Load the dataset
-
-
-# Function to calculate mean and standard deviation
-def calculate_mean_std(dataset,cyanos_only=False):
+def calculate_class_weights(dataset,cyanos_only=False):
     """
-    Calculate the mean and standard deviation of the dataset.
+
+    Calculate and save class weights and the mean and standard deviation of the dataset.
 
     Args:
         dataloader (DataLoader): DataLoader for the dataset.
@@ -53,5 +43,5 @@ def calculate_mean_std(dataset,cyanos_only=False):
     std /= total_images_count
     return mean, std
 
-mean, std = calculate_mean_std(dataset="phyto",cyanos_only=True)
+mean, std = calculate_class_weights(dataset="phyto",cyanos_only=True)
 print(f"Mean: {mean}, Std: {std}")

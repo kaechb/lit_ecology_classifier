@@ -1,7 +1,10 @@
-import torch
-import sklearn
 import matplotlib.pyplot as plt
 import numpy as np
+import sklearn
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
 
 
 def output_results(outpath,  im_names, labels):
@@ -104,10 +107,8 @@ def define_rest_classes(rest_classes):
     class_map["rest"] = 0
     return class_map
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
+
+
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=0, alpha=None, size_average=True):
@@ -141,13 +142,6 @@ class FocalLoss(nn.Module):
         else: return loss.sum()
 
 
-        import torch
-
-
-import torch
-import matplotlib.pyplot as plt
-import numpy as np
-
 def plot_score_distributions(all_scores, all_preds, class_names,true_label):
     """
     Plot the distribution of prediction scores for each class in separate plots.
@@ -176,12 +170,13 @@ def plot_score_distributions(all_scores, all_preds, class_names,true_label):
         bkg_scores = all_scores[(true_label != i)][:,i]
         # Create a figure for the current class
         ax[i].hist(bkg_scores, bins=np.linspace(0,1,30), color='skyblue', edgecolor='black')
-        ax[i].hist(sig_scores, bins=np.linspace(0,1,30), color='red',histtype='step',edgecolor='red')
-
+        ax[i].set_ylabel('Rest Density', color='skyblue')
+        ax[i].set_yscale('log')
+        y_axis = ax[i].twinx()
+        y_axis.hist(sig_scores, bins=np.linspace(0,1,30), color='red',histtype='step',edgecolor='red')
         ax[i].set_title(f'{class_name}')
         ax[i].set_xlabel('Confidence Score')
-        ax[i].set_ylabel('Frequency')
-
-
-
+        y_axis.set_ylabel('Signal Density', color='red')
+        y_axis.set_yscale('log')
+    fig.tight_layout()
     return fig

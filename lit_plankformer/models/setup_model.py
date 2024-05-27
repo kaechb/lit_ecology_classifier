@@ -1,12 +1,10 @@
 
 import timm
-import torch
 import numpy as np
-import copy
-import random
 
 
-def setup_model(architecture, main_param_path, ensemble, finetune, model_path, dataset, testing=False, train_first=False, **kwargs):
+
+def setup_model(architecture, main_param_path, ensemble, finetune, dataset, testing=False, train_first=False, **kwargs):
     """
     Set up and return the specified model architecture.
 
@@ -15,7 +13,6 @@ def setup_model(architecture, main_param_path, ensemble, finetune, model_path, d
         main_param_path (str): Path to the directory containing main parameters.
         ensemble (bool): Whether to use model ensembling.
         finetune (bool): Whether to finetune the model or use it as is.
-        model_path (list): List of paths to saved models.
         dataset (str): The name of the dataset.
         testing (bool, optional): Set to True if in testing mode. Defaults to False.
         train_first (bool, optional): Set to True to train the first layer of the model. Defaults to False.
@@ -66,16 +63,6 @@ def setup_model(architecture, main_param_path, ensemble, finetune, model_path, d
     total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"{total_trainable_params:,} training parameters.")
 
-    # Uncomment this section if you want to load the model in testing mode
-    # if testing:
-    #     if ensemble:
-    #         model = [copy.deepcopy(model) for i in range(len( model_path))]
-    #     else:
-    #         model = [model]
-    #         i=0
-    #         for m in model:
-    #             m.load_state_dict(torch.load(model_path[i] + '/trained_model_' + finetuned + '.pth',map_location="cuda" if torch.cuda.is_available() else "cpu")['model_state_dict'])
-    #             i+=1
     return model
 
 def set_trainable_params(model, train_first=False, finetune=True):

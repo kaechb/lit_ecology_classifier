@@ -9,7 +9,6 @@ def argparser():
     parser.add_argument('--test_path', nargs='*', default=['images'], help='Data directory for testing')
     parser.add_argument('--main_param_path', default='./params/', help='Main directory where the training parameters are saved')
     parser.add_argument('--test_outpath', default='./preds/', help='Directory where you want to save the predictions')
-    parser.add_argument('--model_path', nargs='*', default=['./ckpts/01', './ckpts/02', './ckpts/03'], help='Paths of the saved models')
     parser.add_argument('--dataset', default='zoo', help='Name of the dataset')
     parser.add_argument('--use_wandb', action='store_true', help='Use Weights and Biases for logging')
 
