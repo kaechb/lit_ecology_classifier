@@ -1,128 +1,101 @@
 ###########
 # IMPORTS #
 ###########
-import json
 import logging
 import os
 import pathlib
 import sys
 from time import time
 
-import lightning as pl
+import lightning as l
+import lightning.pytorch as pl
 import torch
-from lightning.pytorch.callbacks import (EarlyStopping, LearningRateMonitor,
-                                         ModelCheckpoint, ModelSummary,
-                                         StochasticWeightAveraging)
 from lightning.pytorch.loggers import CSVLogger, WandbLogger
 
 from .data.datamodule import PlanktonDataModule
 from .helpers.argparser import argparser
+from .helpers.calc_class_weights import calculate_class_weights
+from .helpers.helpers import setup_callbacks
 from .models.model import Plankformer
 
 # Start timing the script
 time_begin = time()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 ###############
 # MAIN SCRIPT #
 ###############
 
-if __name__ == '__main__':
-    print('\nRunning', sys.argv[0], sys.argv[1:])
+if __name__ == "__main__":
+    print("\nRunning", sys.argv[0], sys.argv[1:])
 
     # Parse Arguments for training
     parser = argparser()
     args = parser.parse_args()
-    default_scratch = "/beegfs/desy/user/kaechben/eawag/"
-    args.train_outpath = os.path.join(default_scratch, args.train_outpath)
-    args.datapath = os.path.join(default_scratch, args.datapath)
-    print(args.datapath)
+    # set default scratch path #TODO: change this for cscs
+    args.tarpath = os.path.join(args.datapath, args.dataset + ".tar")
 
     # Create Output Directory if it doesn't exist
     pathlib.Path(args.train_outpath).mkdir(parents=True, exist_ok=True)
     gpus = torch.cuda.device_count() if not args.no_gpu else 0
-
-    if args.priority_classes:
-        args.priority_classes=json.load(open("./lit_plankformer/data/" + 'priority.json'))["priority_classes"]
-    else:
-        args.priority_classes=[]
-    if args.rest_classes:
-        args.rest_classes=json.load(open("./lit_plankformer/data/" + 'rest.json'))["priority_classes"]
-    else:
-        args.rest_classes=[]
-    print("Priority classes:",args.priority_classes)
+    logging.info(f"Using {gpus} GPUs for training.")
     # Initialize the Data Module
     datamodule = PlanktonDataModule(**vars(args))
     datamodule.setup("fit")
 
     # Initialize the loggers
-    callbacks = []
-
     if args.use_wandb:
         logger = WandbLogger(
             project=args.dataset,
             log_model=False,
             save_dir=args.train_outpath,
         )
-        callbacks.append(LearningRateMonitor(logging_interval='step'))
-        logger.experiment.log_code("./lit_plankformer",include_fn=lambda path: path.endswith(".py"))
+        logger.experiment.log_code("./lit_plankformer", include_fn=lambda path: path.endswith(".py"))
     else:
-        logger = CSVLogger(save_dir=args.train_outpath, name='csv_logs')
-
-    torch.backends.cudnn.allow_tf32 = False
+        logger = CSVLogger(save_dir=args.train_outpath, name="csv_logs")
 
     # Initialize the Model
-    # args.lr=args.lr * args.lr_factor
-    model = Plankformer(**vars(args), finetune=True)
+    args.num_classes = len(datamodule.class_map)
+    if args.balance_classes:
+        args.class_weights = calculate_class_weights(datamodule)
+    else:
+        args.class_weights = None
+    model = Plankformer(**vars(args), finetune=True)  # TODO: check if this works on cscs, maybe add a file that downlaods model first
     model.load_datamodule(datamodule)
-
-    # Move the model to GPU if available and specified
-    callbacks.append(ModelCheckpoint(filename='best_model_acc_stage1', monitor='val_acc', mode='max'))
 
     # Initialize the Trainer
-    trainer = pl.Trainer(
+    trainer = l.Trainer(
         logger=logger,
         max_epochs=args.max_epochs,
-        callbacks=callbacks,
-        check_val_every_n_epoch=10,
+        callbacks=pl.callbacks.ModelCheckpoint(filename="best_model_acc_stage1", monitor="val_acc", mode="max"),
+        check_val_every_n_epoch=args.max_epochs // 2,
         devices=gpus,
-        strategy='ddp' if gpus > 1 else "auto",
+        strategy="ddp" if gpus > 1 else "auto",
         enable_progress_bar=False,
-        default_root_dir=args.train_outpath
+        default_root_dir=args.train_outpath,
     )
-    # Train the model
+    # Train the first and last layer of the model
     trainer.fit(model, datamodule=datamodule)
-    model = Plankformer.load_from_checkpoint(
-        str(trainer.checkpoint_callback.best_model_path),
-        lr=args.lr * args.lr_factor,
-        finetune=False
-    )
+    # Load the best model from the first stage
+    model = Plankformer.load_from_checkpoint(str(trainer.checkpoint_callback.best_model_path), lr=args.lr * args.lr_factor, finetune=False)
     model.load_datamodule(datamodule)
-    callbacks = [LearningRateMonitor(logging_interval='step')] if args.use_wandb else []
-    callbacks.append(EarlyStopping(monitor='val_acc', patience=100, mode='max'))
-    if args.swa:
-        callbacks.extend([
-            StochasticWeightAveraging(swa_lrs=1e-3),
-            ModelCheckpoint(filename='best_model_epoch_stage2', monitor='epoch', mode='max')
-        ])
-    callbacks.append(ModelCheckpoint(filename='best_model_acc_stage2', monitor='val_acc' if not len(datamodule.priority_classes)==0 else 'val_false_positives', mode='max' if not len(datamodule.priority_classes)==0 else 'min'))
-    callbacks.append(ModelSummary())
+    # sets up callbacks for stage 2
+    callbacks = setup_callbacks(args.priority_classes, "best_model_acc_stage2")
 
     trainer = pl.Trainer(
         logger=logger,
         max_epochs=2 * args.max_epochs,
         callbacks=callbacks,
-        check_val_every_n_epoch=5,
+        check_val_every_n_epoch=max(args.max_epochs // 4,1),
         devices=gpus,
-        strategy='ddp' if gpus > 1 else "auto",
+        strategy="ddp" if gpus > 1 else "auto",
         enable_progress_bar=False,
-        default_root_dir=args.train_outpath
+        default_root_dir=args.train_outpath,
     )
-
     trainer.fit(model, datamodule=datamodule)
 
     # Calculate and log the total time taken for training
     total_secs = -1 if time_begin is None else (time() - time_begin)
-    logging.info('Time taken for training (in secs): {}'.format(total_secs))
+    logging.info("Time taken for training (in secs): {}".format(total_secs))

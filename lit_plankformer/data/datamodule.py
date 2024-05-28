@@ -1,90 +1,162 @@
+import logging
+import os
+from collections.abc import Iterable
+
 import torch
 from lightning import LightningDataModule
 from lightning.pytorch.utilities.combined_loader import CombinedLoader
-from torch.utils.data import (DataLoader, Dataset, DistributedSampler,
-                              random_split)
+from torch.utils.data import DataLoader, Dataset, DistributedSampler, random_split
 
 from ..data.tardataset import TarImageDataset
-
-
-def custom_collate_fn(batch):
-    batch_images = {rot: [] for rot in ["0",  "90",  "180", "270"]}
-    batch_labels = []
-
-    for rotated_images, label in batch:
-        for rot in batch_images:
-            batch_images[rot].append(rotated_images[rot])
-        batch_labels.append(label)
-
-    batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
-    batch_labels = torch.tensor(batch_labels)
-
-    return batch_images, batch_labels
+from ..helpers.helpers import TTA_collate_fn
 
 
 class PlanktonDataModule(LightningDataModule):
-    def __init__(self, datapath, L=128, TTA=True, batch_size=32, dataset="",
-                 use_data_moments=True,testing=False,calc_normalisation=False, random_rot=False,
-                 AugMix=False, use_multi=True,ood=False, priority_classes=[], rest_classes=[],splits=[0.7,0.15],**kwargs):
+    """
+    A LightningDataModule for handling plankton image datasets stored in a tar file.
+    This module is responsible for preparing and loading data in a way that is compatible
+    with PyTorch training routines using the PyTorch Lightning framework.
+
+    Attributes:
+        tarpath (str): Path to the tar file containing the dataset.
+        batch_size (int): Number of images to load per batch.
+        dataset (str): Identifier for the dataset being used.
+        testing (bool): Flag to enable testing mode, which includes TTA (Test Time Augmentation).
+        use_multi (bool): Flag to enable multi-processing for data loading.
+        priority_classes (str): Path to the JSON file containing a list of the priority classes.
+        splits (Iterable): Proportions to split the dataset into training, validation, and testing.
+    """
+
+    def __init__(self, tarpath: str, batch_size: int, dataset: str, testing: bool = False, use_multi: bool = True, priority_classes: str = "", splits: Iterable = [0.7, 0.15], **kwargs):
         super().__init__()
-        self.datapath = datapath
-        self.TTA = TTA if testing else False
+        self.tarpath = tarpath
+        self.TTA = testing  # Enable Test Time Augmentation if testing is True
         self.batch_size = batch_size
         self.dataset = dataset
-        self.use_data_moments = use_data_moments
-        self.calc_normalisation = calc_normalisation
-        self.random_rot = random_rot
-        self.AugMix = AugMix
         self.use_multi = use_multi
-        self.ood=ood
-        self.priority_classes = priority_classes
-        self.rest_classes = rest_classes
         self.train_split, self.val_split = splits
+        self.priority_classes = priority_classes
+        self.class_map_path = f"./params/{dataset}/class_map.json"
+        # Verify that class map exists for testing mode
+        if not os.path.exists(self.class_map_path) and testing:
+            raise FileNotFoundError(f"Class map not found at {self.class_map_path}. The class map needs to exists to apply the model under /params/{dataset}/class_map.json")
 
     def setup(self, stage=None):
-        if stage == 'fit' or stage == "test":
-            full_dataset = TarImageDataset(self.datapath, self.dataset, self.use_data_moments, random_rot=self.random_rot, TTA=self.TTA,train=True,calc_normalisation=self.calc_normalisation,AugMix=self.AugMix,ood=self.ood,priority_classes=self.priority_classes,rest_classes=self.rest_classes)
-            train_size = int(self.train_split * len(full_dataset))
-            val_size =  int(self.val_split * len(full_dataset))
-            test_size = len(full_dataset) - train_size - val_size
-            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size,test_size],generator=torch.Generator().manual_seed(42))
-            self.class_map = self.train_dataset.dataset.class_map
-            self.val_dataset.train = False
-            self.test_dataset.train = False
+        """
+        Prepares the datasets for training, validation, and testing by applying appropriate splits.
+        This method also handles the TTA mode adjustments.
 
+        Args:
+            stage (Optional[str]): Current stage of the model training/testing. Not used explicitly in the method.
+        """
+        # Load the dataset
+        full_dataset = TarImageDataset(self.tarpath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+        self.class_map = full_dataset.class_map
+        print("Number of classes:", len(self.class_map))
+
+        # Calculate dataset splits
+        train_size = int(self.train_split * len(full_dataset))
+        val_size = int(self.val_split * len(full_dataset))
+        test_size = len(full_dataset) - train_size - val_size
+
+        # Randomly split the dataset into train, validation, and test sets
+        self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
+        # Set train flag to False for validation and test datasets
+        self.val_dataset.train = False
+        self.test_dataset.train = False
 
     def train_dataloader(self):
+        """
+        Constructs the DataLoader for training data.
+        Returns:
+            DataLoader: DataLoader object for the training dataset.
+        """
+        # Use a distributed sampler if multiple GPUs are available and multi-processing is enabled
         sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=(sampler is None), sampler=sampler, num_workers=4, pin_memory=True, drop_last=True)
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=(sampler is None),
+            sampler=sampler,
+            num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+            pin_memory=True,
+            drop_last=True,
+        )
 
     def val_dataloader(self):
-        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1  and self.use_multi else None
-        loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False)
+        """
+        Constructs the DataLoader for validation data.
+        Returns:
+            DataLoader: DataLoader object for the validation dataset.
+        """
+        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+        loader = DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            sampler=sampler,
+            num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+            pin_memory=True,
+            drop_last=False,
+        )
         if self.TTA:
-            loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False, collate_fn=custom_collate_fn)
+            # Apply TTA collate function if TTA is enabled
+            loader = DataLoader(
+                self.val_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                sampler=sampler,
+                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                pin_memory=True,
+                drop_last=False,
+                collate_fn=TTA_collate_fn,
+            )
         return loader
 
     def test_dataloader(self):
-        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1  and self.use_multi else None
+        """
+        Constructs the DataLoader for testing data.
+        Returns:
+            DataLoader: DataLoader object for the testing dataset.
+        """
+        sampler = DistributedSampler(self.test_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
         if self.TTA:
-            loader = DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, sampler=sampler, num_workers=4, pin_memory=True, drop_last=False, collate_fn=custom_collate_fn)
+            loader = DataLoader(
+                self.test_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                sampler=sampler,
+                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                pin_memory=True,
+                drop_last=False,
+                collate_fn=TTA_collate_fn,
+            )
         else:
-            loader = DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4, pin_memory=True,drop_last=False)
+            loader = DataLoader(
+                self.test_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                pin_memory=True,
+                drop_last=False,
+            )
         return loader
 
-if __name__ == '__main__':
-    import os
-    dm = PlanktonDataModule('/beegfs/desy/user/kaechben/eawag/training',dataset="phyto",use_data_moments=False)
-    dm.setup('fit')
+
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+    # Create an instance of the PlanktonDataModule with the specified parameters
+    dm = PlanktonDataModule(
+        "/beegfs/desy/user/kaechben/eawag/training/phyto.tar", dataset="phyto", batch_size=1024, testing=False, use_multi=False, priority_classes="config/priority.json", splits=[0.7, 0.15]
+    )
+    # Set up datasets for the 'fit' stage
+    dm.setup("fit")
+    # Get a DataLoader for training and iterate through it
     test_loader = dm.train_dataloader()
-    k=0
+    k = 0
     for i in test_loader:
-        print(i[0].shape,len(i[1]))
-        for im in i[0]:
-            import matplotlib.pyplot as plt
-            plt.imshow(im.permute(1, 2, 0).numpy())
-            plt.axis('off')  # Turn off axis
-            plt.savefig(f"images/image_{k}.png", bbox_inches='tight', pad_inches=0)
-            k+=1
-        break
-    print("number of images",k)
+        print(i[0].shape, len(i[1]))
+        k += i[0].shape[0]
+    print("number of images", k)
