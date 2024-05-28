@@ -2,7 +2,8 @@
 # IMPORTS #
 ###########
 import logging
-import os
+
+from lightning.pytorch.strategies import DDPStrategy
 import pathlib
 import sys
 from time import time
@@ -30,12 +31,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 if __name__ == "__main__":
     print("\nRunning", sys.argv[0], sys.argv[1:])
-
+    # Initialize Horovod
+    # hvd.init()
+    # torch.cuda.set_device(hvd.local_rank())
     # Parse Arguments for training
     parser = argparser()
     args = parser.parse_args()
     # set default scratch path #TODO: change this for cscs
-    args.tarpath = os.path.join(args.datapath, args.dataset + ".tar")
 
     # Create Output Directory if it doesn't exist
     pathlib.Path(args.train_outpath).mkdir(parents=True, exist_ok=True)
@@ -72,7 +74,8 @@ if __name__ == "__main__":
         callbacks=pl.callbacks.ModelCheckpoint(filename="best_model_acc_stage1", monitor="val_acc", mode="max"),
         check_val_every_n_epoch=args.max_epochs // 2,
         devices=gpus,
-        strategy="ddp" if gpus > 1 else "auto",
+        num_nodes=2,
+        strategy= DDPStrategy(find_unused_parameters=False) if gpus > 1 else "auto" ,
         enable_progress_bar=False,
         default_root_dir=args.train_outpath,
     )

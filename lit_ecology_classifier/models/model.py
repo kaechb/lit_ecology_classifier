@@ -152,9 +152,9 @@ class LitClassifier(LightningModule):
             self.logger.log_image(key="confusion_matrix", images=[fig], step=self.current_epoch)
             self.logger.log_image(key="confusion_matrix_norm", images=[fig2], step=self.current_epoch)
         else:
-            fig.savefig(f"{self.hparams.train_outpath}confusion_matrix_epoch_{self.current_epoch}.png")
-            fig2.savefig(f"{self.hparams.train_outpath}confusion_matrix_normalized_epoch_{self.current_epoch}.png")
-            fig_score.savefig(f"{self.hparams.train_outpath}score_distributions_epoch_{self.current_epoch}.png")
+            fig.savefig(f"{self.hparams.train_outpath}/confusion_matrix_epoch_{self.current_epoch}.png")
+            fig2.savefig(f"{self.hparams.train_outpath}/confusion_matrix_normalized_epoch_{self.current_epoch}.png")
+            fig_score.savefig(f"{self.hparams.train_outpath}/score_distributions_epoch_{self.current_epoch}.png")
         plt.close(fig)
         plt.close(fig2)
         plt.close(fig_score)
@@ -184,9 +184,9 @@ class LitClassifier(LightningModule):
             else:
                 x,y = batch
                 probs = self(x).softmax(dim=1).cpu()
-            self.test_step_targets.extend(y)
-            self.test_step_predictions.append(probs.argmax(1))
-            self.test_step_probs.append(probs)
+            self.test_step_targets.extend(y.cpu())
+            self.test_step_predictions.append(probs.argmax(1).cpu())
+            self.test_step_probs.append(probs.cpu())
 
     def on_test_epoch_end(self):
         """
@@ -209,6 +209,7 @@ class LitClassifier(LightningModule):
             self.logger.log_image(key="confusion_matrix", images=[fig], step=self.current_epoch)
             self.logger.log_image(key="confusion_matrix_norm", images=[fig2], step=self.current_epoch)
         else:
+            logging.info(f"Saving confusion matrix and score distributions to {self.hparams.train_outpath}")
             fig.savefig(f"{self.hparams.train_outpath}/confusion_matrix_test_set.png")
             fig2.savefig(f"{self.hparams.train_outpath}/confusion_matrix_normalized_test_set.png")
             fig_score.savefig(f"{self.hparams.train_outpath}/score_distributions_epoch_test_set.png")

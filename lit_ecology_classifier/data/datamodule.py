@@ -8,7 +8,6 @@ from lightning.pytorch.utilities.combined_loader import CombinedLoader
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, random_split
 
 from ..data.tardataset import TarImageDataset
-from ..data.zipdataset import ZipImageDataset
 from ..helpers.helpers import TTA_collate_fn
 
 
@@ -28,9 +27,9 @@ class DataModule(LightningDataModule):
         splits (Iterable): Proportions to split the dataset into training, validation, and testing.
     """
 
-    def __init__(self, tarpath: str, batch_size: int, dataset: str, TTA: bool = False, use_multi: bool = True, priority_classes: str = "", splits: Iterable = [0.7, 0.15], **kwargs):
+    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, use_multi: bool = True, priority_classes: str = "", splits: Iterable = [0.7, 0.15], **kwargs):
         super().__init__()
-        self.tarpath = tarpath
+        self.datapath = datapath
         self.TTA = TTA # Enable Test Time Augmentation if testing is True
         self.batch_size = batch_size
         self.dataset = dataset
@@ -51,7 +50,9 @@ class DataModule(LightningDataModule):
         """
         # Load the dataset
         if stage != "predict":
-            full_dataset = TarImageDataset(self.tarpath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+
+            full_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+
             self.class_map_path = full_dataset.class_map_path
             self.class_map = full_dataset.class_map
             print("Number of classes:", len(self.class_map))
@@ -67,10 +68,9 @@ class DataModule(LightningDataModule):
             self.val_dataset.train = False
             self.test_dataset.train = False
         else:
-            if self.tarpath.find(".zip") == -1:
-                self.predict_dataset = TarImageDataset(self.tarpath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
-            else:
-                self.predict_dataset = ZipImageDataset(self.tarpath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+
+            self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+
             self.class_map = self.predict_dataset.class_map
             self.class_map_path = self.predict_dataset.class_map_path
         if not os.path.exists(self.class_map_path) and self.TTA:

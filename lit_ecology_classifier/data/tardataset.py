@@ -71,9 +71,6 @@ class TarImageDataset(Dataset):
                 self.class_map = json.load(json_file)
             logging.info(f"Class map loaded.")
 
-        # Standard normalization parameters for ImageNet
-        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
-
         # Transformation sequences for training and validation/testing
         self._define_transforms()
         # Load image information from the tar file

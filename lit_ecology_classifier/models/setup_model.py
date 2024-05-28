@@ -1,9 +1,10 @@
 
 import numpy as np
 import timm
+import torch
+from safetensors.torch import load_file
 
-
-def setup_model( finetune, num_classes, **kwargs):
+def setup_model( finetune, num_classes,checkpoint_path="checkpoints/beitv2_base_patch16_224.in1k_ft_in22k_in1k.safetensors", **kwargs):
     """
     Set up and return the specified model architecture.
 
@@ -19,9 +20,22 @@ def setup_model( finetune, num_classes, **kwargs):
     Returns:
         model: The configured model.
     """
+    # The slurm nodes cant download files directly currently so we make an extremly ugly hack
+    # first the ckpt is download with get_model.sh, then the model is initialised with random weights
+    model = timm.models.beit_base_patch16_224(pretrained=False,num_classes=1000)
 
+    # Load the checkpoint manually
+    checkpoint = load_file(checkpoint_path)
+    model.load_state_dict(checkpoint)
+    # Remove the head
+    del checkpoint['head.weight']
+    del checkpoint['head.bias']
 
-    model = timm.create_model('beitv2_base_patch16_224.in1k_ft_in22k_in1k', pretrained=finetune, num_classes=num_classes)
+    # Load the remaining state dict
+    model.load_state_dict(checkpoint, strict=False)
+
+    # Modify the model to match the number of classes in your dataset
+    model.head = torch.nn.Linear(model.head.in_features, num_classes)
 
     set_trainable_params(model, finetune=finetune)
 
