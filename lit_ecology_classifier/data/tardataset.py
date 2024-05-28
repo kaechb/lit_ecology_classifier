@@ -28,6 +28,7 @@ class TarImageDataset(Dataset):
         train (bool): Specifies whether the dataset will be used for training. Determines the type of transformations applied.
         TTA (bool): Indicates if Test Time Augmentation should be applied during testing.
     """
+
     def __init__(self, tar_path: str, class_map_path: str, priority_classes: str, train: bool, TTA: bool = False):
         """
         Initializes the TarImageDataset with paths and modes.
@@ -59,6 +60,8 @@ class TarImageDataset(Dataset):
 
         # Load class map from JSON or extract it from the tar file if not present
         if not os.path.exists(self.class_map_path):
+            if not train:
+                raise FileNotFoundError(f"Class map not found at {self.class_map_path}. Class map needs to be present for testing.")
             logging.info(f"Class map not found at {self.class_map_path}. Extracting class map from tar file.")
             self._extract_class_map(tar_path)
             logging.info(f"Class map saved to {self.class_map_path}")
@@ -72,14 +75,14 @@ class TarImageDataset(Dataset):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 
         # Transformation sequences for training and validation/testing
-        self.train_transforms = Compose(
-            [ToImage(), RandomHorizontalFlip(), Resize((224, 224)), ToDtype(torch.float32, scale=True), AugMix(), Normalize(mean, std)]
-        )
-        self.val_transforms = Compose(
-            [ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)]
-        )
+        self._define_transforms()
+        # Load image information from the tar file
+        self.image_infos = self._load_image_infos()
 
-        # Set up TTA transformations if TTA is enabled
+    def _define_transforms(self):
+        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225] # ImageNet mean and std
+        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), Resize((224, 224)), ToDtype(torch.float32, scale=True), AugMix(), Normalize(mean, std)])
+        self.val_transforms = Compose([ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         if self.TTA:
             self.rotations = {
                 "0": Compose([RandomRotation(0, 0)]),
@@ -87,9 +90,6 @@ class TarImageDataset(Dataset):
                 "180": Compose([RandomRotation((180, 180))]),
                 "270": Compose([RandomRotation((270, 270))]),
             }
-
-        # Load image information from the tar file
-        self.image_infos = self._load_image_infos()
 
     def __len__(self):
         """
@@ -155,7 +155,7 @@ class TarImageDataset(Dataset):
         if self.priority_classes != "":
             with open(self.priority_classes, "r") as json_file:
                 priority_classes = json.load(json_file)["priority_classes"]
-            logging.info(f"priority_classes not set to \"\". Defining priority class_map")
+            logging.info(f'priority_classes not set to "". Defining priority class_map')
             for key in priority_classes:
                 if key not in self.class_map.keys():
                     raise KeyError(f"Priority class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")

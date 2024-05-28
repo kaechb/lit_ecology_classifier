@@ -19,7 +19,7 @@ def output_results(outpath, im_names, labels):
     labels = labels.tolist()
     base_filename = f"{outpath}/predictions"
     file_path = f"{base_filename}.txt"
-    lines = [f"\n{img}------------------ {label}\n" for img, label in zip(im_names, labels)]
+    lines = [f"\n{img}------------------ {label}" for img, label in zip(im_names, labels)]
     with open(file_path, "w") as f:
         f.writelines(lines)
 

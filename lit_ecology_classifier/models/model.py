@@ -7,14 +7,14 @@ import torch
 from lightning import LightningModule
 from sklearn.metrics import balanced_accuracy_score, f1_score
 
-from ..helpers.helpers import CosineWarmupScheduler, gmean, plot_confusion_matrix, plot_score_distributions, output_results, plot_loss_acc
+from ..helpers.helpers import CosineWarmupScheduler, gmean, output_results, plot_confusion_matrix, plot_loss_acc, plot_score_distributions
 from ..models.setup_model import setup_model
 
 
-class Plankformer(LightningModule):
+class LitClassifier(LightningModule):
     def __init__(self, **hparams):
         """
-        Initialize the Plankformer model.
+        Initialize the LitClassifier.
         Args:
             hparams (dict): Hyperparameters for the model.
         """
@@ -36,16 +36,13 @@ class Plankformer(LightningModule):
             torch.Tensor: Geometrics Average of probabilities from the TTA predictions.
             torch.Tensor: True labels if batch is list containg true labels as second entry else None.
         """
-        if len(batch) == 2:
-            x = torch.cat([batch[0][str(i * 90)] for i in range(4)], dim=0)
-            y = batch[1]
-        else:
-            x = torch.cat([batch[str(i * 90)] for i in range(4)], dim=0)
-            y = None
+
+
+        x = torch.cat([batch[0][str(i * 90)] for i in range(4)], dim=0)
         logits = self(x).softmax(dim=1)
         logits = torch.stack(torch.chunk(logits, 4, dim=0))
         logits = gmean(logits, dim=0)
-        return logits, y
+        return logits
 
     def forward(self, x):
         """
@@ -82,6 +79,7 @@ class Plankformer(LightningModule):
         """
         self.datamodule = datamodule
         self.class_map = self.datamodule.class_map
+        self.hparams.TTA = self.datamodule.TTA
         self.inverted_class_map = dict(sorted({v: k for k, v in self.class_map.items()}.items()))
 
     def training_step(self, batch, batch_idx):
@@ -150,7 +148,6 @@ class Plankformer(LightningModule):
         # Log the confusion matrix to wandb if use_wandb is true
         if self.hparams.use_wandb:
 
-
             self.logger.log_image(key=f"score_distributions", images=[fig_score], step=self.current_epoch)
             self.logger.log_image(key="confusion_matrix", images=[fig], step=self.current_epoch)
             self.logger.log_image(key="confusion_matrix_norm", images=[fig2], step=self.current_epoch)
@@ -182,9 +179,10 @@ class Plankformer(LightningModule):
         """
         with torch.no_grad():
             if self.hparams.TTA:
-                probs,y=self.TTA(batch)
+                probs = self.TTA(batch)
+                y=batch[1]
             else:
-                x, y = batch
+                x,y = batch
                 probs = self(x).softmax(dim=1).cpu()
             self.test_step_targets.extend(y)
             self.test_step_predictions.append(probs.argmax(1))
@@ -218,6 +216,16 @@ class Plankformer(LightningModule):
         plt.close(fig2)
         plt.close(fig_score)
 
+    def on_predict_start(self) -> None:
+        """
+        Hook for the start of the inference phase.
+        """
+
+        self.probabilities = []
+        self.model.eval()
+
+        return super().on_predict_start()
+
     def predict_step(self, batch) -> None:
         """
         Perform a prediction step on unlabeled data.
@@ -225,13 +233,13 @@ class Plankformer(LightningModule):
             batch (tuple): Input batch containing images
         """
         with torch.no_grad():
+
             if self.hparams.TTA:
-                probs,_=self.TTA(batch)
+                probs = self.TTA(batch).cpu()
             else:
-
-                probs = self(batch).softmax(dim=1).cpu
+                batch = batch
+                probs = self(batch).softmax(dim=1).cpu()
             self.probabilities.append(probs)
-
 
     def on_predict_epoch_end(self) -> None:
         """
@@ -240,8 +248,8 @@ class Plankformer(LightningModule):
         """
         filenames = self.datamodule.predict_dataset.image_infos
         max_index = torch.cat(self.probabilities).argmax(axis=1)
-        pred_label = np.array(self.inverted_class_map[max_index.cpu().numpy()], dtype=object)
-        output_results(self.hparams.test_outpath, filenames, pred_label)
+        pred_label = np.array([self.inverted_class_map[idx] for idx in max_index.numpy()], dtype=object)
+        output_results(self.hparams.outpath, filenames, pred_label)
         return super().on_test_epoch_end()
 
     def on_fit_end(self) -> None:
