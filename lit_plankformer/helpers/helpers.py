@@ -139,7 +139,7 @@ def plot_score_distributions(all_scores, all_preds, class_names, true_label):
         y_axis = ax[i].twinx()
         y_axis.hist(sig_scores, bins=np.linspace(0, 1, 30), color="crimson", histtype="step", edgecolor="crimson")
         ax[i].set_title(f"{class_name}")
-        ax[i].set_xlabel("Confidence Score")
+        ax[i].set_xlabel("Predicted Probability")
         y_axis.set_ylabel("Signal Counts", color="crimson")
         y_axis.set_yscale("log")
     fig.tight_layout()
@@ -181,16 +181,15 @@ def plot_loss_acc(logger):
     val_acc = metrics["val_acc"]
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
     ax[0].plot(step[train_loss == train_loss], train_loss[train_loss == train_loss], label="Training Loss", color="skyblue")
-    ax_ = plt.twiny()
-    ax_.plot(val_loss[val_loss == val_loss], label="Validation Loss", color="crimson")
+
+    ax[0].plot(step[val_loss == val_loss],val_loss[val_loss == val_loss], label="Validation Loss", color="crimson")
     ax[0].set_xlabel("Step")
     ax[0].set_ylabel("Loss")
     ax[0].set_title("Loss vs Steps")
     ax[0].legend()
 
     ax[1].plot(step[train_loss == train_loss], train_acc[train_loss == train_loss], label="Training Accuracy", color="skyblue")
-    ax_ = plt.twiny()
-    ax_.plot(val_acc[val_loss == val_loss], label="Validation Accuracy", color="crimson")
+    ax[1].plot(step[val_loss == val_loss],val_acc[val_loss == val_loss], label="Validation Accuracy", color="crimson")
     ax[1].set_xlabel("Step")
     ax[1].set_ylabel("Accuracy")
     ax[1].set_title("Accuracy vs Steps")
