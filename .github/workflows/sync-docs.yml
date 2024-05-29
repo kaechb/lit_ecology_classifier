@@ -42,5 +42,5 @@ jobs:
         env:
           GH_GOD: ${{ secrets.GH_GOD }}
         run: |
-          git push https://kaechb:${GH_GOD}@github.com/kaechb/lit_ecology_classifier.git docs
+          git push https://kaechb:${{ secrets.GH_PAT }}@github.com/kaechb/lit_ecology_classifier.git docs
 
