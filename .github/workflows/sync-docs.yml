@@ -8,7 +8,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  workflows: write
 
 jobs:
   sync:
@@ -45,7 +44,7 @@ jobs:
 
       - name: Push changes
         env:
-          GH_GOD: ${{ secrets.GH_GOD }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git push https://kaechb:${{ secrets.GH_GOD}}@github.com/kaechb/lit_ecology_classifier.git docs
+          git push https://kaechb:${{ secrets.GH_PAT }}@github.com/kaechb/lit_ecology_classifier.git docs
 
