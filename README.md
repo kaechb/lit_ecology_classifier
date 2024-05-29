@@ -1,5 +1,5 @@
 # Lit Ecology Classifier
-
+Documentation: https://lit-ecology-classifier.readthedocs.io/en/latest/
 Lit Ecology Classifier is a machine learning project designed for image classification tasks. It leverages PyTorch Lightning for streamlined training and evaluation processes.
 
 ## Features
