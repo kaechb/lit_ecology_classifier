@@ -35,6 +35,9 @@ jobs:
             exit 1;
           }
 
+      - name: Show status
+        run: git status
+
       - name: Push changes
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
