@@ -13,6 +13,7 @@ Welcome to lit_ecology_classifier's documentation!
    quickstart
    lightning_intro
    argparser
+   slurm_intro
    modules
 
 Indices and tables
