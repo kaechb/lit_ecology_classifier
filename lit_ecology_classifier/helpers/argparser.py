@@ -29,7 +29,7 @@ def inference_argparser():
     parser = argparse.ArgumentParser(description="Use Classifier on unlabelled data.")
     parser.add_argument("--outpath", default="./preds/", help="Directory where you want to save the predictions")
     parser.add_argument("--model_path", default="./checkpoints/model.ckpt", help="Path to the model file")
-    parser.add_argument("--datapath",  default="", help="Path to the folder containing the data to classify as Tar file")
+    parser.add_argument("--datapath",  default="/store/empa/em09/aquascope/phyto.tar", help="Path to the folder containing the data to classify as Tar file")
     parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for training, default is False")
     parser.add_argument("--no_TTA", action="store_true", help="Disable test-time augmentation")
 
