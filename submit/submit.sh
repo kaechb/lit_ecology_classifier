@@ -10,6 +10,7 @@
 #SBATCH --hint=nomultithread
 #SBATCH --output=slurm/slurm_%j.out
 #SBATCH --error=slurm/slurm_%j.err
+#SBATCH --time=6:00:00
 export OMP_NUM_THREADS=12 #$SLURM_CPUS_PER_TASK
 cd ${SCRATCH}/lit_ecology_classifier
 module purge
