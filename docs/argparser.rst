@@ -60,7 +60,7 @@ The inference argument parser is used to classify unlabelled data.
     def inference_argparser():
         parser = argparse.ArgumentParser(description="Use Classifier on unlabelled data.")
         parser.add_argument("--outpath", default="./preds/", help="Directory where you want to save the predictions")
-        parser.add_argument("--model_path", default="./model.ckpt", help="Path to the model file")
+        parser.add_argument("--model_path", default="./checkpoints/model.ckpt", help="Path to the model file")
         parser.add_argument("--datapath",  default="", help="Path to the folder containing the data to classify as Tar file")
         parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for training, default is False")
         parser.add_argument("--no_TTA", action="store_true", help="Disable test-time augmentation")
@@ -70,7 +70,7 @@ The inference argument parser is used to classify unlabelled data.
 ### Arguments
 
 - `--outpath` (default: `./preds/`): Directory where you want to save the predictions.
-- `--model_path` (default: `./model.ckpt`): Path to the model file.
+- `--model_path` (default: `./checkpoints/model.ckpt`): Path to the trained model file to be used for inference.
 - `--datapath` (default: `""`): Path to the folder containing the data to classify as Tar file.
 - `--no_gpu` (default: `False`): Use no GPU for training.
 - `--no_TTA` (default: `False`): Disable test-time augmentation.
