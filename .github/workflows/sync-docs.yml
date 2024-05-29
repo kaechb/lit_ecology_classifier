@@ -36,8 +36,8 @@ jobs:
           }
 
       - name: Push changes
-        if: success()
-        run: git push origin docs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git push https://kaechb:${GH_PAT}@github.com/kaechb/lit_ecology_classifier.git docs
 
