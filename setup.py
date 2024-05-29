@@ -10,6 +10,7 @@ setup(
     version='0.1',
     description='Image Classifier optimised for ecology use-cases',
     packages=find_packages(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=[
         'torch',
