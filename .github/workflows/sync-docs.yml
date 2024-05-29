@@ -28,7 +28,11 @@ jobs:
 
       - name: Sync main to docs
         run: |
-          git merge main --no-edit --allow-unrelated-histories
+          git merge main --no-edit --allow-unrelated-histories  || {
+            echo "Merge conflicts detected, aborting.";
+            git merge --abort;
+            exit 1;
+          }
 
       - name: Push changes
         run: git push origin docs
