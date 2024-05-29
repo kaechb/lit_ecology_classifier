@@ -23,7 +23,7 @@ jobs:
 
       - name: Sync main to docs
         run: |
-          git merge main --no-edit
+          git merge main --no-edit --allow-unrelated-histories
 
       - name: Push changes
         run: git push origin docs
