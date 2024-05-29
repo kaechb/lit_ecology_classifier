@@ -9,7 +9,7 @@ CHECKPOINT_DIR="checkpoints"
 mkdir -p $CHECKPOINT_DIR
 
 # Define the path to save the checkpoint
-CHECKPOINT_PATH="$CHECKPOINT_DIR/${MODEL_NAME}.safetensors"
+CHECKPOINT_PATH="$CHECKPOINT_DIR/backbone.safetensors"
 
 # Function to download the checkpoint
 download_checkpoint() {

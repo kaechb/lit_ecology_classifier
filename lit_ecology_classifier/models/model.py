@@ -211,9 +211,9 @@ class LitClassifier(LightningModule):
             self.logger.log_image(key="confusion_matrix_norm", images=[fig2], step=self.current_epoch)
         else:
             logging.info(f"Saving confusion matrix and score distributions to {self.hparams.train_outpath}")
-            fig.savefig(f"{self.hparams.train_outpath}/confusion_matrix_test_set.png")
-            fig2.savefig(f"{self.hparams.train_outpath}/confusion_matrix_normalized_test_set.png")
-            fig_score.savefig(f"{self.hparams.train_outpath}/score_distributions_epoch_test_set.png")
+            fig.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/confusion_matrix_test_set.png")
+            fig2.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/confusion_matrix_normalized_test_set.png")
+            fig_score.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/score_distributions_epoch_test_set.png")
         plt.close(fig)
         plt.close(fig2)
         plt.close(fig_score)
