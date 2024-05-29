@@ -31,14 +31,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 if __name__ == "__main__":
     print("\nRunning", sys.argv[0], sys.argv[1:])
-    # Initialize Horovod
-    # hvd.init()
-    # torch.cuda.set_device(hvd.local_rank())
+
     # Parse Arguments for training
     parser = argparser()
     args = parser.parse_args()
-    # set default scratch path #TODO: change this for cscs
-
     # Create Output Directory if it doesn't exist
     pathlib.Path(args.train_outpath).mkdir(parents=True, exist_ok=True)
     gpus = torch.cuda.device_count() if not args.no_gpu else 0
@@ -74,8 +70,7 @@ if __name__ == "__main__":
         callbacks=pl.callbacks.ModelCheckpoint(filename="best_model_acc_stage1", monitor="val_acc", mode="max"),
         check_val_every_n_epoch=args.max_epochs // 2,
         devices=gpus,
-        num_nodes=2,
-        strategy= DDPStrategy(find_unused_parameters=False) if gpus > 1 else "auto" ,
+        strategy= "ddp" if gpus > 1 else "auto" ,
         enable_progress_bar=False,
         default_root_dir=args.train_outpath,
     )

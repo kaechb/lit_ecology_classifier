@@ -154,9 +154,9 @@ class DataModule(LightningDataModule):
 
     def predict_dataloader(self):
         """
-        Constructs the DataLoader for testing data.
+        Constructs the DataLoader for inference on data.
         Returns:
-            DataLoader: DataLoader object for the testing dataset.
+            DataLoader: DataLoader object for the inference dataset.
         """
         sampler = DistributedSampler(self.predict_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
         if self.TTA:
