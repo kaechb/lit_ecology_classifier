@@ -1,11 +1,13 @@
 from setuptools import setup, find_packages
 
 
-
+with open("README.md", "r", encoding="utf-8") as fh:
+        long_description = fh.read()
 
 setup(
     name='lit_ecology_classifier',
     version='0.1',
+    long_description=long_description,
     description='Image Classifier optimised for ecology use-cases',
     packages=find_packages(),
     install_requires=[
