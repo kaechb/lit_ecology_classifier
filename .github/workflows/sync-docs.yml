@@ -6,6 +6,9 @@ on:
       - main
 
 jobs:
+  permissions:
+      contents: write
+      pull-requests: write
   sync:
     runs-on: ubuntu-latest
 
