@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account="em09"
 #SBATCH --constraint='gpu'
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-core=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=12
@@ -16,4 +16,4 @@ cd ${SCRATCH}/lit_ecology_classifier
 module purge
 module load daint-gpu cray-python
 source lit_ecology/bin/activate
-python -m lit_ecology_classifier.predict 
+python -m lit_ecology_classifier.predict
