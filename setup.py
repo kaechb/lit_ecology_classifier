@@ -1,23 +1,36 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+
+
+
 
 setup(
     name='lit_ecology_classifier',
-    version='1.0.0',
+    version='0.1',
     description='Image Classifier optimised for ecology use-cases',
-    author='Benno Kaech',
-    author_email='your_email@example.com',
-    url='https://github.com/kaechb/Plankformer',
-    packages=['lit_plankformer'],
+    packages=find_packages(),
     install_requires=[
-        # List any dependencies your module requires
+        'torch',
+        'torchvision',
+        'torchaudio ',
+        'lightning',
+        'numpy',
+        'scipy',
+        'pandas',
+        'matplotlib',
+        # Add other dependencies here
     ],
+    entry_points={
+        'console_scripts': [
+            'lit_ecology_classifier=lit_ecology_classifier.main:main',
+        ],
+    },
+    author='Benno Kaech',
+    author_email='your.email@example.com',
+    url='https://github.com/kaechb/lit_ecology_classifier',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
     ],
+    python_requires='>=3.6',
 )

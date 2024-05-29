@@ -1,3 +1,10 @@
+torch @ https://download.pytorch.org/whl/cu118/torch-2.0.0+cu118-cp39-cp39-linux_x86_64.whl
+torchvision @ https://download.pytorch.org/whl/cu118/torchvision-0.15.0+cu118-cp39-cp39-linux_x86_64.whl
+torchaudio @ https://download.pytorch.org/whl/cu118/torchaudio-0.15.0+cu118-cp39-cp39-linux_x86_64.whl
 lightning==2.2.5
 pandas
 wandb
+matplotlib
+sphinx
+sphinx_rtd_theme
+sphinx-autodoc-typehints

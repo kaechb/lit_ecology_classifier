@@ -61,6 +61,7 @@ class LitClassifier(LightningModule):
             list: List of optimizers.
             list: List of schedulers.
         """
+
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.hparams.lr)
 
         scheduler = CosineWarmupScheduler(optimizer, warmup=3 * len(self.datamodule.train_dataloader()), max_iters=self.trainer.max_epochs * len(self.datamodule.train_dataloader()))

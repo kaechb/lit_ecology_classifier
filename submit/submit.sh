@@ -10,9 +10,10 @@
 #SBATCH --hint=nomultithread
 #SBATCH --output=slurm/slurm_%j.out
 #SBATCH --error=slurm/slurm_%j.err
+#SBATCH --time=6:00:00
 export OMP_NUM_THREADS=12 #$SLURM_CPUS_PER_TASK
 cd ${SCRATCH}/lit_ecology_classifier
 module purge
 module load daint-gpu cray-python
 source lit_ecology/bin/activate
-python python -m lit_ecology_classifier.main --max_epochs 2 --dataset phyto --priority config/priority.json
+python -m lit_ecology_classifier.main --max_epochs 2 --dataset phyto --priority config/priority.json
