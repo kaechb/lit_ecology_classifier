@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lit_ecology_classifier.models package &mdash; lit_ecology_classifier 0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8dde47fa"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="lit_ecology_classifier.helpers package" href="lit_ecology_classifier.helpers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            lit_ecology_classifier
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lightning_intro.html">Introduction to PyTorch Lightning</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lit_ecology_classifier</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="lit_ecology_classifier.html">lit_ecology_classifier package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lit_ecology_classifier.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="lit_ecology_classifier.data.html">lit_ecology_classifier.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lit_ecology_classifier.helpers.html">lit_ecology_classifier.helpers package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">lit_ecology_classifier.models package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier.main">lit_ecology_classifier.main module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier.predict">lit_ecology_classifier.predict module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">lit_ecology_classifier</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">lit_ecology_classifier</a></li>
+          <li class="breadcrumb-item"><a href="lit_ecology_classifier.html">lit_ecology_classifier package</a></li>
+      <li class="breadcrumb-item active">lit_ecology_classifier.models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/lit_ecology_classifier.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="lit-ecology-classifier-models-package">
+<h1>lit_ecology_classifier.models package<a class="headerlink" href="#lit-ecology-classifier-models-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-lit_ecology_classifier.models.model">
+<span id="lit-ecology-classifier-models-model-module"></span><h2>lit_ecology_classifier.models.model module<a class="headerlink" href="#module-lit_ecology_classifier.models.model" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lit_ecology_classifier.models.model.</span></span><span class="sig-name descname"><span class="pre">LitClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">hparams</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.TTA">
+<span class="sig-name descname"><span class="pre">TTA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.TTA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.TTA" title="Link to this definition"></a></dt>
+<dd><p>Perform Test Time Augmentation (TTA) on the input batch.
+:param batch: Input batch containing images and labels.
+:type batch: tuple</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Geometrics Average of probabilities from the TTA predictions.
+torch.Tensor: True labels if batch is list containg true labels as second entry else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.configure_optimizers">
+<span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.configure_optimizers" title="Link to this definition"></a></dt>
+<dd><p>Configure optimizers and learning rate schedulers.
+:returns: List of optimizers.</p>
+<blockquote>
+<div><p>list: List of schedulers.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward pass through the model.
+:param x: Input tensor.
+:type x: torch.Tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Model output.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.load_datamodule">
+<span class="sig-name descname"><span class="pre">load_datamodule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datamodule</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.load_datamodule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.load_datamodule" title="Link to this definition"></a></dt>
+<dd><p>Load the data module into the model.
+:param datamodule: Data module to load.
+:type datamodule: LightningDataModule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_fit_end">
+<span class="sig-name descname"><span class="pre">on_fit_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_fit_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_fit_end" title="Link to this definition"></a></dt>
+<dd><p>If the model is not using wandb, plot the loss and accuracy curves at the end of training
+and save them in the output folder.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_predict_epoch_end">
+<span class="sig-name descname"><span class="pre">on_predict_epoch_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_predict_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_predict_epoch_end" title="Link to this definition"></a></dt>
+<dd><p>Hook to be called at the end of the test epoch.
+Saves predicted labels in text file in folder Output</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_predict_start">
+<span class="sig-name descname"><span class="pre">on_predict_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_predict_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_predict_start" title="Link to this definition"></a></dt>
+<dd><p>Hook for the start of the inference phase.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_test_epoch_end">
+<span class="sig-name descname"><span class="pre">on_test_epoch_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_test_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_test_epoch_end" title="Link to this definition"></a></dt>
+<dd><p>Aggregate outputs and log the confusion matrix at the end of the test epoch.
+:param outputs: List of dictionaries returned by test_step.
+:type outputs: list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_test_epoch_start">
+<span class="sig-name descname"><span class="pre">on_test_epoch_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_test_epoch_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_test_epoch_start" title="Link to this definition"></a></dt>
+<dd><p>Hook to be called at the start of the test epoch.
+Sets up empty lists to store the predicted class probabilities and filenames.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_validation_epoch_end">
+<span class="sig-name descname"><span class="pre">on_validation_epoch_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_validation_epoch_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_validation_epoch_end" title="Link to this definition"></a></dt>
+<dd><p>Aggregate outputs and log the confusion matrix at the end of the validation epoch.
+:param outputs: List of dictionaries returned by validation_step.
+:type outputs: list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.on_validation_epoch_start">
+<span class="sig-name descname"><span class="pre">on_validation_epoch_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.on_validation_epoch_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.on_validation_epoch_start" title="Link to this definition"></a></dt>
+<dd><p>Called in the validation loop at the very beginning of the epoch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.predict_step">
+<span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.predict_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.predict_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a prediction step on unlabeled data.
+:param batch: Input batch containing images
+:type batch: tuple</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.test_step">
+<span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.test_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.test_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a test step.
+:param batch: Input batch containing images and filenames.
+:type batch: tuple
+:param batch_idx: Batch index.
+:type batch_idx: int</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.training_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a training step.
+:param batch: Input batch containing images and labels.
+:type batch: tuple
+:param batch_idx: Batch index.
+:type batch_idx: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Computed loss for the batch.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.model.LitClassifier.validation_step">
+<span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/model.html#LitClassifier.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.model.LitClassifier.validation_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a validation step.
+:param batch: Input batch containing images and labels.
+:type batch: tuple
+:param batch_idx: Batch index.
+:type batch_idx: int</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the loss and predictions.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lit_ecology_classifier.models.setup_model">
+<span id="lit-ecology-classifier-models-setup-model-module"></span><h2>lit_ecology_classifier.models.setup_model module<a class="headerlink" href="#module-lit_ecology_classifier.models.setup_model" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.setup_model.set_trainable_params">
+<span class="sig-prename descclassname"><span class="pre">lit_ecology_classifier.models.setup_model.</span></span><span class="sig-name descname"><span class="pre">set_trainable_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finetune</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/setup_model.html#set_trainable_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.setup_model.set_trainable_params" title="Link to this definition"></a></dt>
+<dd><p>Set the trainable parameters of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>nn.Module</em>) – The model to configure.</p></li>
+<li><p><strong>train_first</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, train the first layer of the model. Defaults to False.</p></li>
+<li><p><strong>finetune</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, finetune the model. Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="lit_ecology_classifier.models.setup_model.setup_model">
+<span class="sig-prename descclassname"><span class="pre">lit_ecology_classifier.models.setup_model.</span></span><span class="sig-name descname"><span class="pre">setup_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">finetune</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'checkpoints/beitv2_base_patch16_224.in1k_ft_in22k_in1k.safetensors'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/models/setup_model.html#setup_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.models.setup_model.setup_model" title="Link to this definition"></a></dt>
+<dd><p>Set up and return the specified model architecture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>architecture</strong> (<em>str</em>) – The model architecture to use.</p></li>
+<li><p><strong>main_param_path</strong> (<em>str</em>) – Path to the directory containing main parameters.</p></li>
+<li><p><strong>ensemble</strong> (<em>bool</em>) – Whether to use model ensembling.</p></li>
+<li><p><strong>finetune</strong> (<em>bool</em>) – Whether to finetune the model or use it as is.</p></li>
+<li><p><strong>dataset</strong> (<em>str</em>) – The name of the dataset.</p></li>
+<li><p><strong>testing</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True if in testing mode. Defaults to False.</p></li>
+<li><p><strong>train_first</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set to True to train the first layer of the model. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The configured model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>model</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-lit_ecology_classifier.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lit_ecology_classifier.models" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lit_ecology_classifier.helpers.html" class="btn btn-neutral float-left" title="lit_ecology_classifier.helpers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benno Kaech.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

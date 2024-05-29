@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart Guide &mdash; lit_ecology_classifier 0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8dde47fa"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            lit_ecology_classifier
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Quickstart Guide</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#additional-resources">Additional Resources</a></li>
+<li><a class="reference internal" href="#data-structure-details">Data Structure Details</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">lit_ecology_classifier</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quickstart Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quickstart-guide">
+<h1>Quickstart Guide<a class="headerlink" href="#quickstart-guide" title="Link to this heading"></a></h1>
+<p>Welcome to the quickstart guide for <cite>lit_ecology_classifier</cite>! This guide will walk you through the installation process and show you how to use the package for ecological classification.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>Before you begin, ensure you have the following installed:</p>
+<ul class="simple">
+<li><p>Python 3.6 or higher</p></li>
+<li><p>pip (Python package installer)</p></li>
+<li><p>Git (optional, for cloning the repository)</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p><strong>Clone the Repository</strong></p>
+<p>First, clone the repository to your local machine. You can skip this step if you have already downloaded the package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/lit_ecology_classifier.git
+<span class="nb">cd</span><span class="w"> </span>lit_ecology_classifier
+</pre></div>
+</div>
+</li>
+<li><p><strong>Create a Virtual Environment</strong></p>
+<p>It’s recommended to use a virtual environment to manage dependencies. Create and activate a virtual environment using <cite>venv</cite> or <cite>conda</cite>.</p>
+<p>Using <cite>venv</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>env
+<span class="nb">source</span><span class="w"> </span>env/bin/activate<span class="w">  </span><span class="c1"># On Windows, use `env\Scripts\activate`</span>
+</pre></div>
+</div>
+<p>Using <cite>conda</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>lit_ecology<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+conda<span class="w"> </span>activate<span class="w"> </span>lit_ecology
+</pre></div>
+</div>
+</li>
+<li><p><strong>Install the Package</strong></p>
+<p>Install the package and its dependencies using <cite>pip</cite>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu118
+pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p><strong>Prepare Your Data</strong></p>
+<p>Ensure your dataset is structured in the required format. The data should be organized with each class having its own subdirectory. The overall structure should look like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dataset_name/
+├──<span class="w"> </span>class1/
+│<span class="w">   </span>├──<span class="w"> </span>image1.jpg
+│<span class="w">   </span>├──<span class="w"> </span>image2.jpg
+│<span class="w">   </span>└──<span class="w"> </span>...
+├──<span class="w"> </span>class2/
+│<span class="w">   </span>├──<span class="w"> </span>image1.jpg
+│<span class="w">   </span>├──<span class="w"> </span>image2.jpg
+│<span class="w">   </span>└──<span class="w"> </span>...
+└──<span class="w"> </span>...
+</pre></div>
+</div>
+<p>Once organized, compress the dataset into a <cite>.tar</cite> or <cite>.zip</cite> file.</p>
+</li>
+<li><p><strong>Train the Model</strong></p>
+<p>To train the model, run the following command with appropriate arguments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>lit_ecology_classifier.main<span class="w"> </span>--max_epochs<span class="w"> </span><span class="m">2</span><span class="w"> </span>--dataset<span class="w"> </span>phyto<span class="w"> </span>--priority<span class="w"> </span>config/priority.json
+</pre></div>
+</div>
+<p><strong>Arguments</strong>:
+- <cite>–max_epochs</cite>: The number of epochs to train.
+- <cite>–dataset</cite>: The name of the dataset.
+- <cite>–priority</cite>: Path to the priority configuration file.</p>
+</li>
+<li><p><strong>Evaluate the Model</strong></p>
+<p>After training, you can evaluate the model on your test dataset. Modify the script as necessary to point to your test data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>lit_ecology_classifier.evaluate<span class="w"> </span>--dataset<span class="w"> </span>phyto<span class="w"> </span>--priority<span class="w"> </span>config/priority.json
+</pre></div>
+</div>
+</li>
+<li><p><strong>Generate Documentation</strong></p>
+<p>To generate the documentation, navigate to the <cite>docs</cite> directory and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+</pre></div>
+</div>
+<p>You can view the generated documentation by opening <cite>docs/_build/html/index.html</cite> in your web browser.</p>
+</li>
+</ol>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<p>Here’s an example workflow:</p>
+<ol class="arabic simple">
+<li><p>Clone the repository and navigate to the project directory.</p></li>
+<li><p>Create and activate a virtual environment.</p></li>
+<li><p>Install dependencies.</p></li>
+<li><p>Prepare your dataset.</p></li>
+<li><p>Run the training script.</p></li>
+<li><p>Evaluate the model.</p></li>
+<li><p>Generate and view the documentation.</p></li>
+</ol>
+</section>
+<section id="additional-resources">
+<h2>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://pytorch.org/docs/stable/index.html">PyTorch Documentation</a></p></li>
+<li><p><a class="reference external" href="https://pytorch-lightning.readthedocs.io/en/latest/">PyTorch Lightning Documentation</a></p></li>
+</ul>
+</section>
+<section id="data-structure-details">
+<h2>Data Structure Details<a class="headerlink" href="#data-structure-details" title="Link to this heading"></a></h2>
+<p>The <cite>TarImageDataset</cite> class expects the data to be structured as follows:</p>
+<ul class="simple">
+<li><p>The root directory should contain subdirectories for each class.</p></li>
+<li><p>Each subdirectory should contain the image files for that class.</p></li>
+</ul>
+<p>Example structure:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dataset_name/
+├──<span class="w"> </span>class1/
+│<span class="w">   </span>├──<span class="w"> </span>image1.jpg
+│<span class="w">   </span>├──<span class="w"> </span>image2.jpg
+│<span class="w">   </span>└──<span class="w"> </span>...
+├──<span class="w"> </span>class2/
+│<span class="w">   </span>├──<span class="w"> </span>image1.jpg
+│<span class="w">   </span>├──<span class="w"> </span>image2.jpg
+│<span class="w">   </span>└──<span class="w"> </span>...
+└──<span class="w"> </span>...
+</pre></div>
+</div>
+<p>Compress the <cite>dataset_name</cite> directory into a <cite>.tar</cite> or <cite>.zip</cite> file before using it with the <cite>lit_ecology_classifier</cite>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tar<span class="w"> </span>-cvf<span class="w"> </span>dataset_name.tar<span class="w"> </span>dataset_name/
+<span class="c1"># or</span>
+zip<span class="w"> </span>-r<span class="w"> </span>dataset_name.zip<span class="w"> </span>dataset_name/
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benno Kaech.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

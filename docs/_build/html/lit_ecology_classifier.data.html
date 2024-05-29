@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lit_ecology_classifier.data package &mdash; lit_ecology_classifier 0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8dde47fa"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="lit_ecology_classifier.helpers package" href="lit_ecology_classifier.helpers.html" />
+    <link rel="prev" title="lit_ecology_classifier package" href="lit_ecology_classifier.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            lit_ecology_classifier
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lightning_intro.html">Introduction to PyTorch Lightning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="argparser.html">Argument Parser Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">lit_ecology_classifier</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="lit_ecology_classifier.html">lit_ecology_classifier package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="lit_ecology_classifier.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">lit_ecology_classifier.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lit_ecology_classifier.helpers.html">lit_ecology_classifier.helpers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lit_ecology_classifier.models.html">lit_ecology_classifier.models package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier.main">lit_ecology_classifier.main module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier.predict">lit_ecology_classifier.predict module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lit_ecology_classifier.html#module-lit_ecology_classifier">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">lit_ecology_classifier</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">lit_ecology_classifier</a></li>
+          <li class="breadcrumb-item"><a href="lit_ecology_classifier.html">lit_ecology_classifier package</a></li>
+      <li class="breadcrumb-item active">lit_ecology_classifier.data package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/lit_ecology_classifier.data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="lit-ecology-classifier-data-package">
+<h1>lit_ecology_classifier.data package<a class="headerlink" href="#lit-ecology-classifier-data-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-lit_ecology_classifier.data.datamodule">
+<span id="lit-ecology-classifier-data-datamodule-module"></span><h2>lit_ecology_classifier.data.datamodule module<a class="headerlink" href="#module-lit_ecology_classifier.data.datamodule" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lit_ecology_classifier.data.datamodule.</span></span><span class="sig-name descname"><span class="pre">DataModule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TTA</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_multi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">0.15]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningDataModule</span></code></p>
+<p>A LightningDataModule for handling image datasets stored in a tar file.
+This module is responsible for preparing and loading data in a way that is compatible
+with PyTorch training routines using the PyTorch Lightning framework.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.tarpath">
+<span class="sig-name descname"><span class="pre">tarpath</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.tarpath" title="Link to this definition"></a></dt>
+<dd><p>Path to the tar file containing the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.batch_size">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.batch_size" title="Link to this definition"></a></dt>
+<dd><p>Number of images to load per batch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.dataset" title="Link to this definition"></a></dt>
+<dd><p>Identifier for the dataset being used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.testing">
+<span class="sig-name descname"><span class="pre">testing</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.testing" title="Link to this definition"></a></dt>
+<dd><p>Flag to enable testing mode, which includes TTA (Test Time Augmentation).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.use_multi">
+<span class="sig-name descname"><span class="pre">use_multi</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.use_multi" title="Link to this definition"></a></dt>
+<dd><p>Flag to enable multi-processing for data loading.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.priority_classes">
+<span class="sig-name descname"><span class="pre">priority_classes</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.priority_classes" title="Link to this definition"></a></dt>
+<dd><p>Path to the JSON file containing a list of the priority classes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.splits">
+<span class="sig-name descname"><span class="pre">splits</span></span><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.splits" title="Link to this definition"></a></dt>
+<dd><p>Proportions to split the dataset into training, validation, and testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Iterable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.predict_dataloader">
+<span class="sig-name descname"><span class="pre">predict_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule.predict_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.predict_dataloader" title="Link to this definition"></a></dt>
+<dd><p>Constructs the DataLoader for inference on data.
+:returns: DataLoader object for the inference dataset.
+:rtype: DataLoader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.setup" title="Link to this definition"></a></dt>
+<dd><p>Prepares the datasets for training, validation, and testing by applying appropriate splits.
+This method also handles the TTA mode adjustments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stage</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Current stage of the model training/testing. Not used explicitly in the method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.test_dataloader">
+<span class="sig-name descname"><span class="pre">test_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule.test_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.test_dataloader" title="Link to this definition"></a></dt>
+<dd><p>Constructs the DataLoader for testing data.
+:returns: DataLoader object for the testing dataset.
+:rtype: DataLoader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.train_dataloader">
+<span class="sig-name descname"><span class="pre">train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule.train_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.train_dataloader" title="Link to this definition"></a></dt>
+<dd><p>Constructs the DataLoader for training data.
+:returns: DataLoader object for the training dataset.
+:rtype: DataLoader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.datamodule.DataModule.val_dataloader">
+<span class="sig-name descname"><span class="pre">val_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/datamodule.html#DataModule.val_dataloader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.datamodule.DataModule.val_dataloader" title="Link to this definition"></a></dt>
+<dd><p>Constructs the DataLoader for validation data.
+:returns: DataLoader object for the validation dataset.
+:rtype: DataLoader</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lit_ecology_classifier.data.tardataset">
+<span id="lit-ecology-classifier-data-tardataset-module"></span><h2>lit_ecology_classifier.data.tardataset module<a class="headerlink" href="#module-lit_ecology_classifier.data.tardataset" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">lit_ecology_classifier.data.tardataset.</span></span><span class="sig-name descname"><span class="pre">TarImageDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tar_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_map_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TTA</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/tardataset.html#TarImageDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<p>A Dataset subclass for managing and accessing image data stored in tar files. This class supports optional
+image transformations, and Test Time Augmentation (TTA) for enhancing model evaluation during testing.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.tar_path">
+<span class="sig-name descname"><span class="pre">tar_path</span></span><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.tar_path" title="Link to this definition"></a></dt>
+<dd><p>Path to the tar file containing image data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.class_map_path">
+<span class="sig-name descname"><span class="pre">class_map_path</span></span><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.class_map_path" title="Link to this definition"></a></dt>
+<dd><p>Path to the JSON file mapping class names to labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.priority_classes">
+<span class="sig-name descname"><span class="pre">priority_classes</span></span><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.priority_classes" title="Link to this definition"></a></dt>
+<dd><p>Path to a JSON file specifying priority classes for targeted training or evaluation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.train">
+<span class="sig-name descname"><span class="pre">train</span></span><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.train" title="Link to this definition"></a></dt>
+<dd><p>Specifies whether the dataset will be used for training. Determines the type of transformations applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.TTA">
+<span class="sig-name descname"><span class="pre">TTA</span></span><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.TTA" title="Link to this definition"></a></dt>
+<dd><p>Indicates if Test Time Augmentation should be applied during testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.get_label_from_filename">
+<span class="sig-name descname"><span class="pre">get_label_from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/tardataset.html#TarImageDataset.get_label_from_filename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.get_label_from_filename" title="Link to this definition"></a></dt>
+<dd><p>Extracts the label index from a given filename.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The filename from which to extract the label.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The label index corresponding to the class.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lit_ecology_classifier.data.tardataset.TarImageDataset.shuffle">
+<span class="sig-name descname"><span class="pre">shuffle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/lit_ecology_classifier/data/tardataset.html#TarImageDataset.shuffle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lit_ecology_classifier.data.tardataset.TarImageDataset.shuffle" title="Link to this definition"></a></dt>
+<dd><p>Shuffles the list of image information to randomize data access, useful during training.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-lit_ecology_classifier.data">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-lit_ecology_classifier.data" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lit_ecology_classifier.html" class="btn btn-neutral float-left" title="lit_ecology_classifier package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lit_ecology_classifier.helpers.html" class="btn btn-neutral float-right" title="lit_ecology_classifier.helpers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benno Kaech.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
