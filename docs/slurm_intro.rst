@@ -21,7 +21,7 @@ Below is a detailed explanation of the provided SLURM job submission script.
 .. code-block:: bash
 
     #!/bin/bash
-    #SBATCH --account="em09"
+    #SBATCH --account="$ACCOUNT_NAME"
     #SBATCH --constraint='gpu'
     #SBATCH --nodes=1
     #SBATCH --ntasks-per-core=1
@@ -47,7 +47,7 @@ Below is a detailed explanation of the provided SLURM job submission script.
 
 2. **SBATCH Directives**:
     These lines configure the SLURM job parameters.
-    - `#SBATCH --account="em09"`: Specifies the account to charge for the job.
+    - `#SBATCH --account="$ACCOUNT_NAME"`: Specifies the account to charge for the job.
     - `#SBATCH --constraint='gpu'`: Constrains the job to run on nodes with GPUs.
     - `#SBATCH --nodes=1`: Requests 1 node for the job.
     - `#SBATCH --ntasks-per-core=1`: Specifies 1 task per CPU core.
