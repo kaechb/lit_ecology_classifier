@@ -21,7 +21,7 @@ Installation
 
    .. code-block:: bash
 
-       git clone https://github.com/yourusername/lit_ecology_classifier.git
+       git clone https://github.com/kaechb/lit_ecology_classifier.git
        cd lit_ecology_classifier
 
 2. **Create a Virtual Environment**
