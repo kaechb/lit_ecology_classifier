@@ -8,7 +8,7 @@ def argparser():
     parser.add_argument("--datapath",  default="/store/empa/em09/aquascope/phyto.tar", help="Folder containing the tar training data")
     parser.add_argument("--train_outpath", default="./train_out", help="Output path for training artifacts")
     parser.add_argument("--main_param_path", default="./params/", help="Main directory where the training parameters are saved")
-    parser.add_argument("--dataset", default="zoo", help="Name of the dataset")
+    parser.add_argument("--dataset", default="phyto", help="Name of the dataset")
     parser.add_argument("--use_wandb", action="store_true", help="Use Weights and Biases for logging")
 
     # Model configuration and training options

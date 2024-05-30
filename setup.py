@@ -1,15 +1,17 @@
 from setuptools import setup, find_packages
 
 
+
 with open("README.md", "r", encoding="utf-8") as fh:
-        long_description = fh.read()
+    long_description = fh.read()
 
 setup(
     name='lit_ecology_classifier',
-    version='0.1',
-    long_description=long_description,
+    version='0.2.4',
     description='Image Classifier optimised for ecology use-cases',
     packages=find_packages(),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     install_requires=[
         'torch',
         'torchvision',
@@ -19,6 +21,9 @@ setup(
         'scipy',
         'pandas',
         'matplotlib',
+        'timm',
+        'safetensors',
+        'scikit-learn'
         # Add other dependencies here
     ],
     entry_points={

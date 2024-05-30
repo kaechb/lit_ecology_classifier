@@ -4,7 +4,7 @@ import timm
 import torch
 from safetensors.torch import load_file
 
-def setup_model( finetune, num_classes,checkpoint_path="checkpoints/beitv2_base_patch16_224.in1k_ft_in22k_in1k.safetensors", **kwargs):
+def setup_model( finetune, num_classes,checkpoint_path="checkpoints/backbone.safetensors", **kwargs):
     """
     Set up and return the specified model architecture.
 
