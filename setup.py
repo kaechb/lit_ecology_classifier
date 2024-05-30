@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='lit_ecology_classifier',
-    version='0.1',
+    version='0.2.3',
     description='Image Classifier optimised for ecology use-cases',
     packages=find_packages(),
     long_description=long_description,
@@ -21,6 +21,9 @@ setup(
         'scipy',
         'pandas',
         'matplotlib',
+        'timm',
+        'safetensors',
+        'scikit-learn'
         # Add other dependencies here
     ],
     entry_points={

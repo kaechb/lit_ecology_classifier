@@ -185,7 +185,7 @@ class LitClassifier(LightningModule):
             else:
                 x,y = batch
                 probs = self(x).softmax(dim=1).cpu()
-            self.test_step_targets.extend(y.cpu())
+            self.test_step_targets.append(y.cpu())
             self.test_step_predictions.append(probs.argmax(1).cpu())
             self.test_step_probs.append(probs.cpu())
 
@@ -200,20 +200,20 @@ class LitClassifier(LightningModule):
         all_labels = torch.cat(self.test_step_targets)
         fig_score = plot_score_distributions(all_scores, all_preds, self.inverted_class_map.values(), all_labels)
         balanced_acc = balanced_accuracy_score(all_labels.cpu().numpy(), all_preds.cpu().numpy())
-        self.log("val_balanced_acc", balanced_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log("test_balanced_acc", balanced_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         false_positives = torch.sum((all_labels == 0) & (all_preds != 0)) / torch.sum(all_labels == 0)
-        self.log("val_false_positives", false_positives.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log("test_false_positives", false_positives.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         fig, fig2 = plot_confusion_matrix(all_labels, all_preds, self.inverted_class_map.values())
 
         if self.hparams.use_wandb:
-            self.logger.log_image(key=f"score_distributions", images=[fig_score], step=self.current_epoch)
-            self.logger.log_image(key="confusion_matrix", images=[fig], step=self.current_epoch)
-            self.logger.log_image(key="confusion_matrix_norm", images=[fig2], step=self.current_epoch)
+            self.logger.log_image(key=f"test_score_distributions", images=[fig_score], step=self.current_epoch)
+            self.logger.log_image(key="test_confusion_matrix", images=[fig], step=self.current_epoch)
+            self.logger.log_image(key="test_confusion_matrix_norm", images=[fig2], step=self.current_epoch)
         else:
-            logging.info(f"Saving confusion matrix and score distributions to {self.hparams.train_outpath}")
-            fig.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/confusion_matrix_test_set.png")
-            fig2.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/confusion_matrix_normalized_test_set.png")
-            fig_score.savefig(f"{self.hparams.train_outpath}/{self.logger.log_dir}/score_distributions_epoch_test_set.png")
+            logging.info(f"Saving confusion matrix and score distributions to {self.hparams.outpath}")
+            fig.savefig(f"{self.hparams.outpath}/test_confusion_matrix_test_set.png")
+            fig2.savefig(f"{self.hparams.outpath}/test_confusion_matrix_normalized_test_set.png")
+            fig_score.savefig(f"{self.hparams.outpath}/test_score_distributions_epoch_test_set.png")
         plt.close(fig)
         plt.close(fig2)
         plt.close(fig_score)
@@ -250,8 +250,12 @@ class LitClassifier(LightningModule):
         """
         filenames = self.datamodule.predict_dataset.image_infos
         max_index = torch.cat(self.probabilities).argmax(axis=1)
+
         pred_label = np.array([self.inverted_class_map[idx] for idx in max_index.numpy()], dtype=object)
-        output_results(self.hparams.outpath, filenames, pred_label)
+        pred_score = torch.cat(self.probabilities).max(1)[0].numpy()
+        output_results(self.hparams.outpath, filenames, pred_label, pred_score)
+        plt.hist(max_index.numpy(), bins=len(self.inverted_class_map))
+        plt.savefig(f"{self.hparams.outpath}/predictions_histogram.png")
         return super().on_test_epoch_end()
 
     def on_fit_end(self) -> None:

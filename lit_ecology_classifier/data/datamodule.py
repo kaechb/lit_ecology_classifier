@@ -8,6 +8,7 @@ from lightning.pytorch.utilities.combined_loader import CombinedLoader
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, random_split
 
 from ..data.tardataset import TarImageDataset
+from ..data.imagedataset import ImageFolderDataset
 from ..helpers.helpers import TTA_collate_fn
 
 
@@ -27,7 +28,7 @@ class DataModule(LightningDataModule):
         splits (Iterable): Proportions to split the dataset into training, validation, and testing.
     """
 
-    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, use_multi: bool = True, priority_classes: str = "", splits: Iterable = [0.7, 0.15], **kwargs):
+    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, use_multi: bool = True, priority_classes: list = [], splits: Iterable = [0.7, 0.15], **kwargs):
         super().__init__()
         self.datapath = datapath
         self.TTA = TTA # Enable Test Time Augmentation if testing is True
@@ -50,8 +51,10 @@ class DataModule(LightningDataModule):
         """
         # Load the dataset
         if stage != "predict":
-
-            full_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+            if self.datapath.find(".tar") == -1:
+                full_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+            else:
+                full_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
 
             self.class_map_path = full_dataset.class_map_path
             self.class_map = full_dataset.class_map

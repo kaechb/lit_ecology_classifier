@@ -47,14 +47,12 @@ class TarImageDataset(Dataset):
         self.priority_classes = priority_classes
 
         # Load priority classes and adjust class map accordingly
-        if self.priority_classes != "":
-            if not os.path.exists(self.priority_classes):
-                raise FileNotFoundError(f"Priority classes file not found at {self.priority_classes}.")
+        if self.priority_classes != []:
+
             logging.info(f"Priority classes not None. Loading priority classes from {self.priority_classes}")
-            with open(self.priority_classes, "r") as json_file:
-                priority_classes = json.load(json_file)["priority_classes"]
-            priority_postfix = "_".join(priority_classes)
-            logging.info(f"Priority classes loaded: {priority_classes}")
+
+            priority_postfix = "_".join(self.priority_classes)
+            logging.info(f"Priority classes loaded: {self.priority_classes}")
             self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map_{priority_postfix}.json")
             logging.info(f"Class map path set to {self.class_map_path}")
 
@@ -149,14 +147,13 @@ class TarImageDataset(Dataset):
         sorted_class_names = sorted(class_map.keys())
         logging.info(f"Found {len(sorted_class_names)} classes.")
         self.class_map = {class_name: idx for idx, class_name in enumerate(sorted_class_names)}
-        if self.priority_classes != "":
-            with open(self.priority_classes, "r") as json_file:
-                priority_classes = json.load(json_file)["priority_classes"]
-            logging.info(f'priority_classes not set to "". Defining priority class_map')
-            for key in priority_classes:
+        if self.priority_classes != []:
+
+            logging.info(f'priority_classes not set to []. Defining priority class_map')
+            for key in self.priority_classes:
                 if key not in self.class_map.keys():
                     raise KeyError(f"Priority class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
-            self.class_map = define_priority_classes(priority_classes)
+            self.class_map = define_priority_classes(self.priority_classes)
 
         logging.info(f"Class map created:\n{pprint.pformat(self.class_map)}")
         logging.info(f"Saving class map to {self.class_map_path}")
