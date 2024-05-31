@@ -71,8 +71,10 @@ class DataModule(LightningDataModule):
             self.val_dataset.train = False
             self.test_dataset.train = False
         else:
-
-            self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+            if self.datapath.find(".tar") == -1:
+                self.predict_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+            else:
+                self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
 
             self.class_map = self.predict_dataset.class_map
             self.class_map_path = self.predict_dataset.class_map_path
@@ -91,7 +93,7 @@ class DataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=(sampler is None),
             sampler=sampler,
-            num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+            num_workers= 4,
             pin_memory=True,
             drop_last=True,
         )
@@ -108,7 +110,7 @@ class DataModule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=False,
             sampler=sampler,
-            num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+            num_workers= 4,
             pin_memory=True,
             drop_last=False,
         )
@@ -119,7 +121,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=sampler,
-                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -139,7 +141,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=sampler,
-                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -149,7 +151,7 @@ class DataModule(LightningDataModule):
                 self.test_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
             )
