@@ -87,11 +87,11 @@ class DataModule(LightningDataModule):
             DataLoader: DataLoader object for the training dataset.
         """
         # Use a distributed sampler if multiple GPUs are available and multi-processing is enabled
-        sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=(sampler is None),
+            shuffle=True,
             sampler=sampler,
             num_workers= 4,
             pin_memory=True,
@@ -104,12 +104,12 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the validation dataset.
         """
-        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+
         loader = DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            sampler=sampler,
+            sampler=None,
             num_workers= 4,
             pin_memory=True,
             drop_last=False,
@@ -120,7 +120,7 @@ class DataModule(LightningDataModule):
                 self.val_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                sampler=sampler,
+                sampler=None,
                 num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
@@ -140,7 +140,7 @@ class DataModule(LightningDataModule):
                 self.test_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                sampler=sampler,
+                sampler=None,
                 num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
@@ -163,14 +163,14 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the inference dataset.
         """
-        sampler = DistributedSampler(self.predict_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+
         if self.TTA:
             loader = DataLoader(
                 self.predict_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                sampler=sampler,
-                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                sampler=None,
+                num_workers= 4,
                 pin_memory=False,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -180,7 +180,7 @@ class DataModule(LightningDataModule):
                 self.predict_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers=os.cpu_count() // torch.cuda.device_count() if torch.cuda.device_count() > 0 else 4,
+                num_workers= 4,
                 pin_memory=False,
                 drop_last=False,
             )

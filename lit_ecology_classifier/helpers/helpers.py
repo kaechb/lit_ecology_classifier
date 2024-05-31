@@ -24,8 +24,8 @@ def output_results(outpath, im_names, labels, scores):
     labels = labels.tolist()
     base_filename = f"{outpath}/predictions_lit_ecology_classifier"
     file_path = f"{base_filename}.txt"
-    lines = [f"\n{img}------------------ {label}/{score}" for img, label,score in zip(im_names, labels,scores)]
-    with open(file_path, "w") as f:
+    lines = [f"{img}------------------ {label}/{score}\n" for img, label,score in zip(im_names, labels,scores)]
+    with open(file_path, "w+") as f:
         f.writelines(lines)
 
 
