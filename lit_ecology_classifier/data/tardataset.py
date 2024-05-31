@@ -51,9 +51,9 @@ class TarImageDataset(Dataset):
 
             logging.info(f"Priority classes not None. Loading priority classes from {self.priority_classes}")
 
-            priority_postfix = "_".join(self.priority_classes)
+            priority_postfix = "_priority"
             logging.info(f"Priority classes loaded: {self.priority_classes}")
-            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map_{priority_postfix}.json")
+            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{priority_postfix}.json")
             logging.info(f"Class map path set to {self.class_map_path}")
 
         # Load class map from JSON or extract it from the tar file if not present
