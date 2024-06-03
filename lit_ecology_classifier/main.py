@@ -52,7 +52,9 @@ if __name__ == "__main__":
         )
         logger.experiment.log_code("./lit_plankformer", include_fn=lambda path: path.endswith(".py"))
     else:
-        logger = CSVLogger(save_dir=args.train_outpath, name="csv_logs")
+        logger = CSVLogger(save_dir=args.train_outpath, name='csv_logs')
+
+    torch.backends.cudnn.allow_tf32 = False
 
     # Initialize the Model
     args.num_classes = len(datamodule.class_map)

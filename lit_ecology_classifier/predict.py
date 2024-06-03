@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     # Initialize the Trainer and Perform Predictions
     trainer = pl.Trainer(devices=[args.gpu_id] if not args.no_gpu else None, strategy= "auto",
-    enable_progress_bar=True, default_root_dir=args.outpath,)
+    enable_progress_bar=True, default_root_dir=args.outpath,limit_predict_batches=args.limit_pred_batch if args.limit_pred_batch > 0 else None)
     trainer.predict(model, datamodule=data_module)
 
     # Calculate and log the total time taken for prediction

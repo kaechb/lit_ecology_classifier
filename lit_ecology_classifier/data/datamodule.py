@@ -23,20 +23,19 @@ class DataModule(LightningDataModule):
         batch_size (int): Number of images to load per batch.
         dataset (str): Identifier for the dataset being used.
         testing (bool): Flag to enable testing mode, which includes TTA (Test Time Augmentation).
-        use_multi (bool): Flag to enable multi-processing for data loading.
         priority_classes (str): Path to the JSON file containing a list of the priority classes.
         splits (Iterable): Proportions to split the dataset into training, validation, and testing.
     """
 
-    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, use_multi: bool = True, priority_classes: list = [], splits: Iterable = [0.7, 0.15], **kwargs):
+    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False,  priority_classes: list = [], rest_classes: list=[], splits: Iterable = [0.7, 0.15], **kwargs):
         super().__init__()
         self.datapath = datapath
         self.TTA = TTA # Enable Test Time Augmentation if testing is True
         self.batch_size = batch_size
         self.dataset = dataset
-        self.use_multi = use_multi
         self.train_split, self.val_split = splits
         self.priority_classes = priority_classes
+        self.rest_classes=rest_classes
         self.class_map_path = f"./params/{dataset}/class_map.json"
         # Verify that class map exists for testing mode
 
@@ -52,9 +51,9 @@ class DataModule(LightningDataModule):
         # Load the dataset
         if stage != "predict":
             if self.datapath.find(".tar") == -1:
-                full_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+                full_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes,self.rest_classes, TTA=self.TTA, train=True)
             else:
-                full_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=True)
+                full_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes,self.rest_classes, TTA=self.TTA, train=True)
 
             self.class_map_path = full_dataset.class_map_path
             self.class_map = full_dataset.class_map
@@ -72,9 +71,9 @@ class DataModule(LightningDataModule):
             self.test_dataset.train = False
         else:
             if self.datapath.find(".tar") == -1:
-                self.predict_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+                self.predict_dataset = ImageFolderDataset(self.datapath, self.class_map_path, self.priority_classes,self.rest_classes, TTA=self.TTA, train=False)
             else:
-                self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes, TTA=self.TTA, train=False)
+                self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes,self.rest_classes, TTA=self.TTA, train=False)
 
             self.class_map = self.predict_dataset.class_map
             self.class_map_path = self.predict_dataset.class_map_path
@@ -134,7 +133,7 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the testing dataset.
         """
-        sampler = DistributedSampler(self.test_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+
         if self.TTA:
             loader = DataLoader(
                 self.test_dataset,

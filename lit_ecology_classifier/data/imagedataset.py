@@ -27,7 +27,7 @@ class ImageFolderDataset(Dataset):
         TTA (bool): Indicates if Test Time Augmentation should be applied during testing.
     """
 
-    def __init__(self, image_folder_path: str, class_map_path: str, priority_classes: str, train: bool, TTA: bool = False):
+    def __init__(self, tar_path: str, class_map_path: str, priority_classes: list, rest_classes:list,train: bool, TTA: bool = False):
         """
         Initializes the ImageFolderDataset with paths and modes.
 
@@ -43,6 +43,7 @@ class ImageFolderDataset(Dataset):
         self.train = train
         self.class_map_path = class_map_path
         self.priority_classes = priority_classes
+        self.rest_classes = rest_classes
 
         # Load priority classes and adjust class map accordingly
         if self.priority_classes != []:
@@ -53,7 +54,16 @@ class ImageFolderDataset(Dataset):
             self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{priority_postfix}.json")
             logging.info(f"Class map path set to {self.class_map_path}")
 
-        # Load class map from JSON or create it from the folder structure if not present
+        elif self.rest_classes != []:
+
+            logging.info(f"rest classes not None. Loading rest classes from {self.rest_classes}")
+
+            rest_postfix = "_rest"
+            logging.info(f"rest classes loaded: {self.rest_classes}")
+            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{rest_postfix}.json")
+            logging.info(f"Class map path set to {self.class_map_path}")
+
+        # Load class map from JSON or extract it from the tar file if not present
         if not os.path.exists(self.class_map_path):
             if not train:
                 raise FileNotFoundError(f"Class map not found at {self.class_map_path}. Class map needs to be present for testing.")
@@ -70,6 +80,23 @@ class ImageFolderDataset(Dataset):
         self._define_transforms()
         # Load image information from the folder structure
         self.image_infos = self._load_image_infos()
+        if self.rest_classes:
+            self._filter_rest_classes()
+
+
+    def _filter_rest_classes(self):
+        """
+        Removes samples that are not in rest_classes from the dataset.
+        """
+        logging.info(f"Filtering dataset to keep only classes in {self.rest_classes}")
+        filtered_image_infos = []
+        for image_info in self.image_infos:
+            class_name = os.path.basename(os.path.dirname(image_info.name))
+            if class_name in self.rest_classes:
+                filtered_image_infos.append(image_info)
+        self.image_infos = filtered_image_infos
+        logging.info(f"Filtered dataset to {len(self.image_infos)} samples.")
+
 
     def _define_transforms(self):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]  # ImageNet mean and std
@@ -146,6 +173,13 @@ class ImageFolderDataset(Dataset):
                 if key not in self.class_map.keys():
                     raise KeyError(f"Priority class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
             self.class_map = define_priority_classes(self.priority_classes)
+        if self.rest_classes != []:
+
+            logging.info(f'rest_classes not set to []. Defining rest class_map')
+            for key in self.rest_classes:
+                if key not in self.class_map.keys():
+                    raise KeyError(f"rest class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
+            self.class_map = define_rest_classes(self.rest_classes)
 
         logging.info(f"Class map created:\n{pprint.pformat(self.class_map)}")
         logging.info(f"Saving class map to {self.class_map_path}")
@@ -164,7 +198,10 @@ class ImageFolderDataset(Dataset):
             int: The label index corresponding to the class.
         """
         label = filename.split(os.sep)[-2]
-        label = self.class_map.get(label, 0)
+        if self.priority_classes != []:
+            label = self.class_map.get(label, 0)
+        else:
+            label = self.class_map[label]
         return label
 
     def shuffle(self):
