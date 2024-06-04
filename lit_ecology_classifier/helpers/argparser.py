@@ -82,10 +82,15 @@ def inference_argparser():
         Disable test-time augmentation. Default is False.
     --gpu_id: int
         GPU ID to use for inference. Default is 0.
+<<<<<<< HEAD
     --limit_pred_batches: int
         Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
     --prog_bar: flag
         Enable progress bar. Default is False.
+=======
+    --limit_pred_batch: int
+        Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
+>>>>>>> c0e49a6d2f18c72c5e46984fd5b19e1fdd182938
     Returns:
         argparse.ArgumentParser: The argument parser with defined arguments.
     """
