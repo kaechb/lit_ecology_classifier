@@ -7,7 +7,7 @@ import torch
 from lightning import LightningModule
 from sklearn.metrics import balanced_accuracy_score, f1_score
 
-from ..helpers.helpers import CosineWarmupScheduler, gmean, output_results, plot_confusion_matrix, plot_loss_acc, plot_score_distributions
+from ..helpers.helpers import CosineWarmupScheduler, gmean, output_results, plot_confusion_matrix, plot_loss_acc, plot_score_distributions, FocalLoss, setup_classmap
 from ..models.setup_model import setup_model
 
 
@@ -20,12 +20,15 @@ class LitClassifier(LightningModule):
         """
         super().__init__()
         self.save_hyperparameters()
-        self.model = setup_model(**self.hparams)
-        if self.hparams.class_weights is not None:
-            self.loss = torch.nn.CrossEntropyLoss(weight=torch.tensor(self.hparams.class_weights, dtype=torch.float32))
-        else:
-            self.loss = torch.nn.CrossEntropyLoss()
 
+        if 'class_map' not in self.hparams:
+            self.hparams.class_map = setup_classmap(datapath=self.hparams['datapath'], priority_classes=self.hparams['priority_classes'], rest_classes=self.hparams['rest_classes'])
+            self.class_map = self.hparams.class_map
+            self.hparams.num_classes = len(self.class_map.keys())
+        else:
+            self.class_map = self.hparams.class_map
+        self.model = setup_model(**self.hparams)
+        self.loss = torch.nn.CrossEntropyLoss() if not "loss" in list(self.hparams) or not self.hparams.loss=="focal" else FocalLoss(alpha=None ,gamma=1.75)
         logging.info("Model initialized with hyperparameters:\n {}".format(pprint.pformat(self.hparams)))
 
     def TTA(self, batch):
@@ -115,22 +118,25 @@ class LitClassifier(LightningModule):
         Returns:
             dict: Dictionary containing the loss and predictions.
         """
+        if self.hparams.TTA:
+            probs = self.TTA(batch)
+            y=batch[1]
+        else:
+            x, y = batch
+            probs = self(x).softmax(1)
 
-        x, y = batch
-        logits = self(x)
-
-        loss = self.loss(logits, y)
+        loss = self.loss(probs, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
-        acc = (logits.argmax(dim=1) == y).float().mean()
+        acc = (probs.argmax(dim=1) == y).float().mean()
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
-        f1 = f1_score(y.cpu(), logits.argmax(dim=1).cpu(), average="weighted")
+        f1 = f1_score(y.cpu(), probs.argmax(dim=1).cpu(), average="weighted")
         self.log("val_f1", f1, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
 
-        self.val_step_probs.append(logits.softmax(dim=1).cpu())
-        self.val_step_predictions.append(logits.cpu().argmax(dim=1))
+        self.val_step_probs.append(probs.cpu())
+        self.val_step_predictions.append(probs.cpu().argmax(dim=1))
         self.val_step_targets.append(y.cpu())
 
-        return {"val_loss": loss, "val_acc": acc, "val_f1": f1, "logits": logits, "y": y}
+        return {"val_loss": loss, "val_acc": acc, "val_f1": f1, "probs": probs, "y": y}
 
     def on_validation_epoch_end(self):
         """
@@ -144,8 +150,8 @@ class LitClassifier(LightningModule):
         fig_score = plot_score_distributions(all_scores, all_preds, self.inverted_class_map.values(), all_labels)
         balanced_acc = balanced_accuracy_score(all_labels.cpu().numpy(), all_preds.cpu().numpy())
         self.log("val_balanced_acc", balanced_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
-        false_positives = torch.sum((all_labels == 0) & (all_preds != 0)) / torch.sum(all_labels == 0)
-        self.log("val_false_positives", false_positives.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        precision = torch.sum((all_preds!= 0) & (all_labels!=0) ).item()/max(torch.sum((all_preds!= 0) & (all_labels!=0) ).item()+torch.sum((all_preds != 0) & (all_labels == 0)).item(),1)
+        self.log("val_precision", precision, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         fig, fig2 = plot_confusion_matrix(all_labels, all_preds, self.inverted_class_map.values())
         # Log the confusion matrix to wandb if use_wandb is true
         if self.hparams.use_wandb:
@@ -211,6 +217,12 @@ class LitClassifier(LightningModule):
             self.logger.log_image(key="test_confusion_matrix", images=[fig], step=self.current_epoch)
             self.logger.log_image(key="test_confusion_matrix_norm", images=[fig2], step=self.current_epoch)
         else:
+            self.acc=(all_labels == all_preds).float().mean()
+            print("test_balanced_acc", balanced_acc)
+            print("test_false_positives", false_positives)
+            print("test_acc", self.acc)
+            self.f1=f1_score(all_labels.cpu(), all_preds.cpu(), average="weighted")
+            print("test_f1", self.f1)
             logging.info(f"Saving confusion matrix and score distributions to {self.hparams.outpath}")
             fig.savefig(f"{self.hparams.outpath}/test_confusion_matrix_test_set.png")
             fig2.savefig(f"{self.hparams.outpath}/test_confusion_matrix_normalized_test_set.png")
@@ -239,6 +251,8 @@ class LitClassifier(LightningModule):
 
             if self.hparams.TTA:
                 probs = self.TTA(batch).cpu()
+
+
             else:
                 batch = batch
                 probs = self(batch).softmax(dim=1).cpu()
@@ -254,9 +268,7 @@ class LitClassifier(LightningModule):
 
         pred_label = np.array([self.inverted_class_map[idx] for idx in max_index.numpy()], dtype=object)
         pred_score = torch.cat(self.probabilities).max(1)[0].numpy()
-        priority_classes = len(self.hparams.get("priority_classes", [])) ==0
-        rest_classes = len(self.hparams.get("rest_classes", [])) ==0
-        output_results(self.hparams.outpath, filenames, pred_label, pred_score, priority_classes, rest_classes)
+        output_results(self.hparams.outpath, filenames, pred_label, pred_score)
         plt.hist(max_index.numpy(), bins=len(self.inverted_class_map))
         plt.savefig(f"{self.hparams.outpath}/predictions_histogram.png")
         return super().on_test_epoch_end()

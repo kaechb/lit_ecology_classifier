@@ -76,7 +76,7 @@ class DataModule(LightningDataModule):
                 self.predict_dataset = TarImageDataset(self.datapath, self.class_map_path, self.priority_classes,self.rest_classes, TTA=self.TTA, train=False)
 
             self.class_map = self.predict_dataset.class_map
-            self.class_map_path = self.predict_dataset.class_map_path
+
         if not os.path.exists(self.class_map_path) and self.TTA:
             raise FileNotFoundError(f"Class map not found at {self.class_map_path}. The class map needs to exist for inference.")
     def train_dataloader(self):

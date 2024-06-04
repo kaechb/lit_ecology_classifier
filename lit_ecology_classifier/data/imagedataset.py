@@ -1,9 +1,11 @@
-import os
+import io
 import json
 import logging
+import os
 import pprint
 import random
 from collections import defaultdict
+from typing import Any
 
 import torch
 from PIL import Image
@@ -11,7 +13,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms.v2 import AugMix, Compose, Normalize, RandomHorizontalFlip, RandomRotation, Resize, ToDtype, ToImage
 
-from ..helpers.helpers import define_priority_classes
+from ..helpers.helpers import define_priority_classes, define_rest_classes
 
 
 class ImageFolderDataset(Dataset):
@@ -27,60 +29,29 @@ class ImageFolderDataset(Dataset):
         TTA (bool): Indicates if Test Time Augmentation should be applied during testing.
     """
 
-    def __init__(self, tar_path: str, class_map_path: str, priority_classes: list, rest_classes:list,train: bool, TTA: bool = False):
+    def __init__(self, data_dir: str, class_map: dict, priority_classes: list, rest_classes: list, TTA: bool = False, train: bool = False):
         """
         Initializes the ImageFolderDataset with paths and modes.
 
         Args:
-            image_folder_path (str): The folder path containing the images.
-            class_map_path (str): The file path to the JSON file with class mappings.
-            priority_classes (str): The file path to the JSON file that contains priority classes.
+            data_dir (str): The directory path containing the images.
+            class_map (dict): A dictionary mapping class names to labels.
+            priority_classes (list): A list of priority classes.
+            rest_classes (list): A list of rest classes.
             train (bool): A flag to indicate if the dataset is used for training purposes.
             TTA (bool): A flag to enable Test Time Augmentation.
         """
-        self.image_folder_path = image_folder_path
+        self.data_dir = data_dir
         self.TTA = TTA
+        self.class_map = class_map
         self.train = train
-        self.class_map_path = class_map_path
         self.priority_classes = priority_classes
         self.rest_classes = rest_classes
-
-        # Load priority classes and adjust class map accordingly
-        if self.priority_classes != []:
-
-            logging.info(f"Priority classes not None. Loading priority classes from {self.priority_classes}")
-            priority_postfix = "_priority"
-            logging.info(f"Priority classes loaded: {self.priority_classes}")
-            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{priority_postfix}.json")
-            logging.info(f"Class map path set to {self.class_map_path}")
-
-        elif self.rest_classes != []:
-
-            logging.info(f"rest classes not None. Loading rest classes from {self.rest_classes}")
-
-            rest_postfix = "_rest"
-            logging.info(f"rest classes loaded: {self.rest_classes}")
-            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{rest_postfix}.json")
-            logging.info(f"Class map path set to {self.class_map_path}")
-
-        # Load class map from JSON or extract it from the tar file if not present
-        if not os.path.exists(self.class_map_path):
-            if not train:
-                raise FileNotFoundError(f"Class map not found at {self.class_map_path}. Class map needs to be present for testing.")
-            logging.info(f"Class map not found at {self.class_map_path}. Extracting class map from folder structure.")
-            self._create_class_map(image_folder_path)
-            logging.info(f"Class map saved to {self.class_map_path}")
-        else:
-            logging.info(f"Loading class map from {self.class_map_path}")
-            with open(self.class_map_path, "r") as json_file:
-                self.class_map = json.load(json_file)
-            logging.info(f"Class map loaded.")
-
         # Transformation sequences for training and validation/testing
         self._define_transforms()
         # Load image information from the folder structure
         self.image_infos = self._load_image_infos()
-        if self.rest_classes:
+        if rest_classes != []:
             self._filter_rest_classes()
 
 
@@ -89,18 +60,14 @@ class ImageFolderDataset(Dataset):
         Removes samples that are not in rest_classes from the dataset.
         """
         logging.info(f"Filtering dataset to keep only classes in {self.rest_classes}")
-        filtered_image_infos = []
-        for image_info in self.image_infos:
-            class_name = os.path.basename(os.path.dirname(image_info.name))
-            if class_name in self.rest_classes:
-                filtered_image_infos.append(image_info)
+        filtered_image_infos = [info for info in self.image_infos if os.path.basename(os.path.dirname(info)) in self.rest_classes]
         self.image_infos = filtered_image_infos
         logging.info(f"Filtered dataset to {len(self.image_infos)} samples.")
 
 
     def _define_transforms(self):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]  # ImageNet mean and std
-        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), Resize((224, 224)), ToDtype(torch.float32, scale=True), AugMix(), Normalize(mean, std)])
+        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(30), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         self.val_transforms = Compose([ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         if self.TTA:
             self.rotations = {
@@ -129,8 +96,9 @@ class ImageFolderDataset(Dataset):
         Returns:
             tuple: A tuple containing the transformed image and its label.
         """
-        image_info = self.image_infos[idx]
-        image = Image.open(image_info).convert("RGB")
+        image_path = self.image_infos[idx]
+        image = Image.open(image_path).convert("RGB")
+
         # Apply TTA transformations if enabled
         if self.TTA:
             image = {rot: self.val_transforms(self.rotations[rot](image)) for rot in self.rotations}
@@ -138,7 +106,8 @@ class ImageFolderDataset(Dataset):
             image = self.train_transforms(image)
         else:
             image = self.val_transforms(image)
-        label = self.get_label_from_filename(image_info)
+
+        label = self.get_label_from_filename(image_path)
         return image, label
 
     def _load_image_infos(self):
@@ -146,46 +115,11 @@ class ImageFolderDataset(Dataset):
         Load image information from the folder structure.
         """
         image_infos = []
-        for root, _, files in os.walk(self.image_folder_path):
+        for root, _, files in os.walk(self.data_dir):
             for file in files:
                 if file.lower().endswith(("jpg", "jpeg", "png")):
                     image_infos.append(os.path.join(root, file))
         return image_infos
-
-    def _create_class_map(self, folder_path):
-        """
-        Creates the class map from the folder structure and saves it to a JSON file.
-        """
-        logging.info("Creating class map from folder structure.")
-        class_map = defaultdict(list)
-        for root, dirs, files in os.walk(folder_path):
-            for dir_name in dirs:
-                class_map[dir_name] = []
-
-        # Create a sorted list of class names and map them to indices
-        sorted_class_names = sorted(class_map.keys())
-        logging.info(f"Found {len(sorted_class_names)} classes.")
-        self.class_map = {class_name: idx for idx, class_name in enumerate(sorted_class_names)}
-        if self.priority_classes != []:
-
-            logging.info(f'priority_classes not set to []. Defining priority class_map')
-            for key in self.priority_classes:
-                if key not in self.class_map.keys():
-                    raise KeyError(f"Priority class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
-            self.class_map = define_priority_classes(self.priority_classes)
-        if self.rest_classes != []:
-
-            logging.info(f'rest_classes not set to []. Defining rest class_map')
-            for key in self.rest_classes:
-                if key not in self.class_map.keys():
-                    raise KeyError(f"rest class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
-            self.class_map = define_rest_classes(self.rest_classes)
-
-        logging.info(f"Class map created:\n{pprint.pformat(self.class_map)}")
-        logging.info(f"Saving class map to {self.class_map_path}")
-        os.makedirs(os.path.dirname(self.class_map_path), exist_ok=True)
-        with open(self.class_map_path, "w") as json_file:
-            json.dump(self.class_map, json_file, indent=4)
 
     def get_label_from_filename(self, filename):
         """
@@ -197,7 +131,7 @@ class ImageFolderDataset(Dataset):
         Returns:
             int: The label index corresponding to the class.
         """
-        label = filename.split(os.sep)[-2]
+        label = os.path.basename(os.path.dirname(filename))
         if self.priority_classes != []:
             label = self.class_map.get(label, 0)
         else:

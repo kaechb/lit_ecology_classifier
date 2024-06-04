@@ -57,6 +57,7 @@ def argparser():
     parser.add_argument("--lr", type=float, default=1e-2, help="Learning rate for training")
     parser.add_argument("--lr_factor", type=float, default=0.01, help="Learning rate factor for training of full body")
     parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for training, default is False")
+    parser.add_argument("--loss", choices=["cross_entropy", "focal"], default="cross_entropy", help="Loss function to use")
 
     # Augmentation and training/testing specifics
     parser.add_argument("--testing", action="store_true", help="Set this to True if in testing mode, False for training")
@@ -82,7 +83,7 @@ def inference_argparser():
     --gpu_id: int
         GPU ID to use for inference. Default is 0.
     --limit_pred_batch: int
-        Limit the number of batches to predict. Default is 0, meaning no limit
+        Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
     Returns:
         argparse.ArgumentParser: The argument parser with defined arguments.
     """
