@@ -47,7 +47,7 @@ def argparser():
     parser.add_argument("--main_param_path", default="./params/", help="Main directory where the training parameters are saved")
     parser.add_argument("--dataset", default="phyto", help="Name of the dataset")
     parser.add_argument("--use_wandb", action="store_true", help="Use Weights and Biases for logging")
-
+    parser.add_argument("--no_use_multi", action="store_true", help="Use multiple GPUs for training")
     # Model configuration and training options
     parser.add_argument("--priority_classes", type=str, default="", help="Path to the JSON file specifying priority classes for training")
     parser.add_argument("--rest_classes", type=str, default="", help="Path to the JSON file specifying rest classes for training")

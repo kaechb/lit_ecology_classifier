@@ -42,11 +42,13 @@ class LitClassifier(LightningModule):
             torch.Tensor: True labels if batch is list containg true labels as second entry else None.
         """
 
+        tensor_list=[batch[0][str(i * 90)] for i in range(4)]
 
-        x = torch.cat([batch[0][str(i * 90)] for i in range(4)], dim=0)
-        logits = self(x).softmax(dim=1)
+        x = torch.cat(tensor_list, dim=0)
+
+        logits = self(x)
         logits = torch.stack(torch.chunk(logits, 4, dim=0))
-        logits = gmean(logits, dim=0)
+        logits=gmean(logits.softmax(-1),0)
         return logits
 
     def forward(self, x):

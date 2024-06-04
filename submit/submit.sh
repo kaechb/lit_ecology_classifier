@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account="em09"
+#SBATCH --account="ma"
 #SBATCH --constraint='gpu'
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-core=1
@@ -16,4 +16,4 @@ cd ${SCRATCH}/lit_ecology_classifier
 module purge
 module load daint-gpu cray-python
 source lit_ecology/bin/activate
-python -m lit_ecology_classifier.main --max_epochs 20 --dataset phyto --priority config/priority.json
+python -m lit_ecology_classifier.main --max_epochs 20 --dataset phyto 

@@ -22,20 +22,20 @@ def setup_model( pretrained=False, num_classes=None,checkpoint_path="checkpoints
     """
     # The slurm nodes cant download files directly currently so we make an extremly ugly hack
     # first the ckpt is download with get_model.sh, then the model is initialised with random weights
-    model = timm.models.beit_base_patch16_224(pretrained=False,num_classes=1000)
+    model = timm.models.beit_base_patch16_224(pretrained=pretrained,num_classes=num_classes)
+    # print(os.listdir(checkpoint_path))
+    # # Load the checkpoint manually
+    # checkpoint = load_file(checkpoint_path)
+    # model.load_state_dict(checkpoint)
+    # # Remove the head
+    # del checkpoint['head.weight']
+    # del checkpoint['head.bias']
 
-    # Load the checkpoint manually
-    checkpoint = load_file(checkpoint_path)
-    model.load_state_dict(checkpoint)
-    # Remove the head
-    del checkpoint['head.weight']
-    del checkpoint['head.bias']
-
-    # Load the remaining state dict
-    model.load_state_dict(checkpoint, strict=False)
+    # # Load the remaining state dict
+    # model.load_state_dict(checkpoint, strict=False)
 
     # Modify the model to match the number of classes in your dataset
-    model.head = torch.nn.Linear(model.head.in_features, num_classes)
+    # model.head = torch.nn.Linear(model.head.in_features, num_classes)
 
     set_trainable_params(model, finetune=pretrained)
 

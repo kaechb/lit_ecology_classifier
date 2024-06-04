@@ -8,7 +8,7 @@ from lightning.pytorch.utilities.combined_loader import CombinedLoader
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, random_split
 
 from ..data.tardataset import TarImageDataset
-from ..data.imagedataset import ImageFolderDataset
+
 from ..helpers.helpers import TTA_collate_fn
 
 
@@ -59,14 +59,14 @@ class DataModule(LightningDataModule):
             print("Number of classes:", len(self.class_map))
 
             # Calculate dataset splits
-            train_size = int(self.train_split * len(full_dataset))
+            self.train_size = int(self.train_split * len(full_dataset))
             val_size = int(self.val_split * len(full_dataset))
             test_size = len(full_dataset) - train_size - val_size
             print("Train size:", train_size)
             print("Validation size:", val_size)
             print("Test size:", test_size)
             # Randomly split the dataset into train, validation, and test sets
-            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
+            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [self.train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
             # Set train flag to False for validation and test datasets
             self.val_dataset.train = False
             self.test_dataset.train = False
@@ -85,13 +85,14 @@ class DataModule(LightningDataModule):
             DataLoader: DataLoader object for the training dataset.
         """
         # Use a distributed sampler if multiple GPUs are available and multi-processing is enabled
+        sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
 
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
             sampler=sampler,
-            num_workers= 4,
+            num_workers= 8,
             pin_memory=True,
             drop_last=True,
         )
@@ -102,13 +103,14 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the validation dataset.
         """
+        sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
 
         loader = DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            sampler=None,
-            num_workers= 4,
+            sampler=sampler,
+            num_workers= 8 ,
             pin_memory=True,
             drop_last=False,
         )
@@ -118,8 +120,8 @@ class DataModule(LightningDataModule):
                 self.val_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                sampler=None,
-                num_workers= 4,
+                sampler=sampler,
+                num_workers= 8,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -139,7 +141,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=None,
-                num_workers= 4,
+                num_workers= 8,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -149,7 +151,7 @@ class DataModule(LightningDataModule):
                 self.test_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers= 4,
+                num_workers= 8,
                 pin_memory=True,
                 drop_last=False,
             )
@@ -168,7 +170,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=None,
-                num_workers= 4,
+                num_workers= 8,
                 pin_memory=False,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -178,7 +180,7 @@ class DataModule(LightningDataModule):
                 self.predict_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers= 4,
+                num_workers= 8,
                 pin_memory=False,
                 drop_last=False,
             )
@@ -189,11 +191,15 @@ class DataModule(LightningDataModule):
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
+    import json
+    with open("config/rest.json") as file:
+        rest=json.load(file)["rest_classes"]
     # Create an instance of the PlanktonDataModule with the specified parameters
     dm = DataModule(
-        "/beegfs/desy/user/kaechben/eawag/training/phyto.tar", dataset="phyto", batch_size=1024, testing=False, use_multi=False, priority_classes="config/priority.json", splits=[0.7, 0.15]
+        "./phyto.tar", dataset="phyto", batch_size=1024, testing=False, use_multi=False, rest_classes=rest, splits=[0.7, 0.15]
     )
+
+
     # Set up datasets for the 'fit' stage
     dm.setup("fit")
     # Get a DataLoader for training and iterate through it

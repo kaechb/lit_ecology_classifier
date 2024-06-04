@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
-
 import torch
 import torch.nn.functional as F
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint, ModelSummary, StochasticWeightAveraging
@@ -49,6 +48,8 @@ class FocalLoss(nn.Module):
             return loss.mean()
         else:
             return loss.sum()
+
+
 
 
 def output_results(outpath, im_names, labels, scores,priority_classes=False,rest_classes=False,tar_file=False):
@@ -99,14 +100,12 @@ def plot_confusion_matrix(all_labels, all_preds, class_names):
         tuple: (figure for absolute confusion matrix, figure for normalized confusion matrix)
     """
 
-
     class_indices = np.arange(len(class_names))
     confusion_matrix = sklearn.metrics.confusion_matrix(all_labels.cpu(), all_preds.cpu(), labels=class_indices)
     confusion_matrix_norm = sklearn.metrics.confusion_matrix(all_labels.cpu(), all_preds.cpu(), normalize="pred", labels=class_indices)
     num_classes = confusion_matrix.shape[0]
     fig, ax = plt.subplots(figsize=(20, 20))
     fig2, ax2 = plt.subplots(figsize=(20, 20))
-
 
     if len(class_names) != num_classes:
         print(f"Warning: Number of class names ({len(class_names)}) does not match the number of classes ({num_classes}) in confusion matrix.")
@@ -121,6 +120,7 @@ def plot_confusion_matrix(all_labels, all_preds, class_names):
     fig2.tight_layout()
     return fig, fig2
 
+
 def cvd_colormap():
     """
     A color map accessible for people with color vision deficiency (CVD).
@@ -132,13 +132,14 @@ def cvd_colormap():
 
     # Create a dictionary with color information
     cdict = {
-        'red': [(stops[i], red[i], red[i]) for i in range(len(stops))],
-        'green': [(stops[i], green[i], green[i]) for i in range(len(stops))],
-        'blue': [(stops[i], blue[i], blue[i]) for i in range(len(stops))]
+        "red": [(stops[i], red[i], red[i]) for i in range(len(stops))],
+        "green": [(stops[i], green[i], green[i]) for i in range(len(stops))],
+        "blue": [(stops[i], blue[i], blue[i]) for i in range(len(stops))],
     }
 
     # Create the colormap
-    return LinearSegmentedColormap('CustomMap', segmentdata=cdict, N=255)
+    return LinearSegmentedColormap("CustomMap", segmentdata=cdict, N=255)
+
 
 class CosineWarmupScheduler(torch.optim.lr_scheduler._LRScheduler):
     """
@@ -176,6 +177,11 @@ def define_priority_classes(priority_classes):
     class_map = {class_name: i + 1 for i, class_name in enumerate(priority_classes)}
     class_map["rest"] = 0
     return class_map
+
+def define_rest_classes(priority_classes):
+    class_map = {class_name: i for i, class_name in enumerate(priority_classes)}
+    return class_map
+
 
 def define_rest_classes(priority_classes):
     class_map = {class_name: i for i, class_name in enumerate(priority_classes)}
@@ -243,7 +249,6 @@ def TTA_collate_fn(batch: dict):
     return batch_images, batch_labels
 
 
-
 def plot_loss_acc(logger):
     """
     Plots the training and validation loss and accuracy from the logger's metrics file.
@@ -281,6 +286,7 @@ def plot_loss_acc(logger):
     fig.tight_layout()
     plt.savefig(f"{logger.save_dir}/{logger.name}/version_{logger.version}/loss_accuracy.png")
 
+
 def setup_callbacks(priority_classes, ckpt_name):
     """
     Sets up callbacks for the training process.
@@ -293,12 +299,13 @@ def setup_callbacks(priority_classes, ckpt_name):
         list: A list of configured callbacks including EarlyStopping, ModelCheckpoint, and ModelSummary.
     """
     callbacks = []
-    ckpt_name = ckpt_name+"-{epoch:02d}-{val_acc:.2f}" if len(priority_classes )==0 else ckpt_name+"-{epoch:02d}-{val_acc:.2f}-{val_false_positives:.2f}"
-    monitor = "val_acc" if len(priority_classes )==0 else "val_false_positives"
-    mode = "max" if not len(priority_classes )==0 else "min"
+    ckpt_name = ckpt_name + "-{epoch:02d}-{val_acc:.4f}" if len(priority_classes) == 0 else ckpt_name + "-{epoch:02d}-{val_acc:.4f}-{val_false_positives:.4f}"
+    monitor = "val_acc" if len(priority_classes) == 0 else "val_precision"
+    mode = "max"
     callbacks.append(ModelCheckpoint(filename=ckpt_name, monitor=monitor, mode=mode, save_top_k=5))
     callbacks.append(ModelSummary())
     return callbacks
+
 
 def plot_reduced_classes(model, priority_classes):
     """
