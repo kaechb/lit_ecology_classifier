@@ -20,13 +20,14 @@ class LitClassifier(LightningModule):
         """
         super().__init__()
         self.save_hyperparameters()
-
+        print("class_map",self.hparams.class_map)
         if 'class_map' not in self.hparams:
             self.hparams.class_map = setup_classmap(datapath=self.hparams['datapath'], priority_classes=self.hparams['priority_classes'], rest_classes=self.hparams['rest_classes'])
             self.class_map = self.hparams.class_map
             self.hparams.num_classes = len(self.class_map.keys())
         else:
             self.class_map = self.hparams.class_map
+        self.inverted_class_map = dict(sorted({v: k for k, v in self.class_map.items()}.items()))
         self.model = setup_model(**self.hparams)
         self.loss = torch.nn.CrossEntropyLoss() if not "loss" in list(self.hparams) or not self.hparams.loss=="focal" else FocalLoss(alpha=None ,gamma=1.75)
         logging.info("Model initialized with hyperparameters:\n {}".format(pprint.pformat(self.hparams)))
@@ -83,9 +84,8 @@ class LitClassifier(LightningModule):
             datamodule (LightningDataModule): Data module to load.
         """
         self.datamodule = datamodule
-        self.class_map = self.datamodule.class_map
         self.hparams.TTA = self.datamodule.TTA
-        self.inverted_class_map = dict(sorted({v: k for k, v in self.class_map.items()}.items()))
+
 
     def training_step(self, batch, batch_idx):
         """
