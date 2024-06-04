@@ -82,8 +82,10 @@ def inference_argparser():
         Disable test-time augmentation. Default is False.
     --gpu_id: int
         GPU ID to use for inference. Default is 0.
-    --limit_pred_batch: int
+    --limit_pred_batches: int
         Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
+    --prog_bar: flag
+        Enable progress bar. Default is False.
     Returns:
         argparse.ArgumentParser: The argument parser with defined arguments.
     """
@@ -95,7 +97,8 @@ def inference_argparser():
     parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for inference, default is False")
     parser.add_argument("--no_TTA", action="store_true", help="Disable test-time augmentation")
     parser.add_argument("--gpu_id", type=int, default=0, help="GPU ID to use for inference")
-    parser.add_argument("--limit_pred_batch", type=int, default=0, help="Limit the number of batches to predict")
+    parser.add_argument("--prog_bar", action="store_true", help="Enable progress bar")
+    parser.add_argument("--limit_pred_batches", type=int, default=0, help="Limit the number of batches to predict")
     return parser
 
 
