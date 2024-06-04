@@ -51,7 +51,7 @@ class FocalLoss(nn.Module):
             return loss.sum()
 
 
-def output_results(outpath, im_names, labels, scores):
+def output_results(outpath, im_names, labels, scores,priority_classes=False,rest_classes=False,tar_file=False):
     """
     Output the prediction results to a file.
 
@@ -64,6 +64,8 @@ def output_results(outpath, im_names, labels, scores):
     labels = labels.tolist()
     base_filename = f"{outpath}/predictions_lit_ecology_classifier"+("_priority" if priority_classes else "")+("_rest" if rest_classes else "")
     file_path = f"{base_filename}.txt"
+    if tar_file:
+        im_names = [img.name for img in im_names]
     lines = [f"{img}------------------ {label}/{score}\n" for img, label,score in zip(im_names, labels,scores)]
     with open(file_path, "w+") as f:
         f.writelines(lines)

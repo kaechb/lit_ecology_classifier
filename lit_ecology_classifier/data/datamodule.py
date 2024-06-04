@@ -62,7 +62,9 @@ class DataModule(LightningDataModule):
             train_size = int(self.train_split * len(full_dataset))
             val_size = int(self.val_split * len(full_dataset))
             test_size = len(full_dataset) - train_size - val_size
-
+            print("Train size:", train_size)
+            print("Validation size:", val_size)
+            print("Test size:", test_size)
             # Randomly split the dataset into train, validation, and test sets
             self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
             # Set train flag to False for validation and test datasets

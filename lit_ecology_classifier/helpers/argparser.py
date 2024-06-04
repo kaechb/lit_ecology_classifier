@@ -52,7 +52,7 @@ def argparser():
     parser.add_argument("--priority_classes", type=str, default="", help="Path to the JSON file specifying priority classes for training")
     parser.add_argument("--rest_classes", type=str, default="", help="Path to the JSON file specifying rest classes for training")
     parser.add_argument("--balance_classes", action="store_true", help="Balance the classes for training")
-    parser.add_argument("--batch_size", type=int, default=64, help="Batch size for training")
+    parser.add_argument("--batch_size", type=int, default=180, help="Batch size for training")
     parser.add_argument("--max_epochs", type=int, default=20, help="Number of epochs to train")
     parser.add_argument("--lr", type=float, default=1e-2, help="Learning rate for training")
     parser.add_argument("--lr_factor", type=float, default=0.01, help="Learning rate factor for training of full body")
@@ -61,6 +61,7 @@ def argparser():
 
     # Augmentation and training/testing specifics
     parser.add_argument("--testing", action="store_true", help="Set this to True if in testing mode, False for training")
+    parser.add_argument("--no_TTA", action="store_true", help="Enable Test Time Augmentation")
     return parser
 
 def inference_argparser():
@@ -69,7 +70,7 @@ def inference_argparser():
 
     Arguments:
     --batch_size: int
-        Batch size for inference. Default is 32.
+        Batch size for inference. Default is 180.
     --outpath: str
         Directory where predictions will be saved. Default is "./preds/".
     --model_path: str
@@ -82,20 +83,15 @@ def inference_argparser():
         Disable test-time augmentation. Default is False.
     --gpu_id: int
         GPU ID to use for inference. Default is 0.
-<<<<<<< HEAD
     --limit_pred_batches: int
         Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
     --prog_bar: flag
         Enable progress bar. Default is False.
-=======
-    --limit_pred_batch: int
-        Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
->>>>>>> c0e49a6d2f18c72c5e46984fd5b19e1fdd182938
     Returns:
         argparse.ArgumentParser: The argument parser with defined arguments.
     """
     parser = argparse.ArgumentParser(description="Use Classifier on unlabeled data.")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for inference")
+    parser.add_argument("--batch_size", type=int, default=180, help="Batch size for inference")
     parser.add_argument("--outpath", default="./preds/", help="Directory where predictions will be saved")
     parser.add_argument("--model_path", default="./checkpoints/model.ckpt", help="Path to the model checkpoint file")
     parser.add_argument("--datapath",  default="/store/empa/em09/aquascope/phyto.tar", help="Path to the tar file containing the data to classify")

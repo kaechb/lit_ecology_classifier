@@ -123,9 +123,9 @@ class LitClassifier(LightningModule):
             y=batch[1]
         else:
             x, y = batch
-            probs = self(x).softmax(1)
-
-        loss = self.loss(probs, y)
+            logits = self(x)
+            probs=logits.softmax(dim=1)
+        loss = self.loss(logits, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         acc = (probs.argmax(dim=1) == y).float().mean()
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
@@ -191,7 +191,8 @@ class LitClassifier(LightningModule):
                 y=batch[1]
             else:
                 x,y = batch
-                probs = self(x).softmax(dim=1).cpu()
+                logits = self(x)
+                probs=logits.softmax(dim=1)
             self.test_step_targets.append(y.cpu())
             self.test_step_predictions.append(probs.argmax(1).cpu())
             self.test_step_probs.append(probs.cpu())
@@ -268,7 +269,7 @@ class LitClassifier(LightningModule):
 
         pred_label = np.array([self.inverted_class_map[idx] for idx in max_index.numpy()], dtype=object)
         pred_score = torch.cat(self.probabilities).max(1)[0].numpy()
-        output_results(self.hparams.outpath, filenames, pred_label, pred_score)
+        output_results(self.hparams.outpath, filenames, pred_label, pred_score, priority_classes=self.hparams.priority_classes!=[], rest_classes=self.hparams.rest_classes!=[], tar_file=self.hparams.datapath.find(".tar") != -1)
         plt.hist(max_index.numpy(), bins=len(self.inverted_class_map))
         plt.savefig(f"{self.hparams.outpath}/predictions_histogram.png")
         return super().on_test_epoch_end()
