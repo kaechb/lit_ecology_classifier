@@ -1,76 +1,75 @@
-Argument Parser Documentation
-=============================
 
-This document details the command-line arguments for configuring, training, running, and inferring with the machine learning model for image classification.
+## Argument Parser Module
 
-Main Argument Parser
---------------------
+This module provides functions to create argument parsers for configuring, training, and running the image classification model.
 
-The main argument parser is used to configure, train, and run the model.
+### `argparser()`
 
-.. code-block:: python
+```eval_rst
+.. autofunction:: argparser
+   :noindex:
+```
 
-    def argparser():
-        parser = argparse.ArgumentParser(description="Configure, train and run the machine learning model for image classification.")
+Creates an argument parser for configuring and training the machine learning model.
 
-        # Paths and directories
-        parser.add_argument("--datapath",  default="/store/empa/em09/aquascope/phyto.tar", help="Folder containing the tar training data")
-        parser.add_argument("--train_outpath", default="./train_out", help="Output path for training artifacts")
-        parser.add_argument("--main_param_path", default="./params/", help="Main directory where the training parameters are saved")
-        parser.add_argument("--dataset", default="zoo", help="Name of the dataset")
-        parser.add_argument("--use_wandb", action="store_true", help="Use Weights and Biases for logging")
+**Arguments:**
 
-        # Model configuration and training options
-        parser.add_argument("--priority_classes", type=str, default="", help="Use priority classes for training, specify the path to the JSON file")
-        parser.add_argument("--balance_classes", action="store_true", help="Balance the classes for training")
-        # Deep learning model specifics
-        parser.add_argument("--batch_size", type=int, default=64, help="Batch size for training")
-        parser.add_argument("--max_epochs", type=int, default=20, help="Number of epochs to train")
-        parser.add_argument("--lr", type=float, default=1e-2, help="Learning rate for training")
-        parser.add_argument("--lr_factor", type=float, default=0.01, help="Learning rate factor for training of full body")
-        parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for training, default is False")
+* `--datapath` (str): Path to the tar file containing the training data. Default is "/store/empa/em09/aquascope/phyto.tar".
+* `--train_outpath` (str): Output path for training artifacts. Default is "./train_out".
+* `--main_param_path` (str): Main directory where the training parameters are saved. Default is "./params/".
+* `--dataset` (str): Name of the dataset. Default is "phyto".
+* `--use_wandb` (flag): Use Weights and Biases for logging. Default is False.
+* `--priority_classes` (str): Path to the JSON file specifying priority classes for training. Default is an empty string.
+* `--rest_classes` (str): Path to the JSON file specifying rest classes for training. Default is an empty string.
+* `--balance_classes` (flag): Balance the classes for training. Default is False.
+* `--batch_size` (int): Batch size for training. Default is 180.
+* `--max_epochs` (int): Number of epochs to train. Default is 20.
+* `--lr` (float): Learning rate for training. Default is 1e-2.
+* `--lr_factor` (float): Learning rate factor for training of full body. Default is 0.01.
+* `--no_gpu` (flag): Use no GPU for training. Default is False.
+* `--testing` (flag): Set this to True if in testing mode, False for training. Default is False.
+* `--loss` (str): Loss function to use (choices: "cross_entropy", "focal"). Default is "cross_entropy".
+* `--no_TTA` (flag): Enable Test Time Augmentation. Default is False.
 
-        # Augmentation and training/testing specifics
-        parser.add_argument("--testing", action="store_true", help="Set this to True if in testing mode, False for training")
-        return parser
 
-### Arguments
+**Returns:**
 
-- `--datapath` (default: `/store/empa/em09/aquascope/phyto.tar`): Folder containing the tar training data.
-- `--train_outpath` (default: `./train_out`): Output path for training artifacts.
-- `--main_param_path` (default: `./params/`): Main directory where the training parameters are saved.
-- `--dataset` (default: `zoo`): Name of the dataset.
-- `--use_wandb` (default: `False`): Use Weights and Biases for logging.
-- `--priority_classes` (default: `""`): Use priority classes for training, specify the path to the JSON file.
-- `--balance_classes` (default: `False`): Balance the classes for training.
-- `--batch_size` (default: `64`): Batch size for training.
-- `--max_epochs` (default: `20`): Number of epochs to train.
-- `--lr` (default: `1e-2`): Learning rate for training.
-- `--lr_factor` (default: `0.01`): Learning rate factor for training of full body.
-- `--no_gpu` (default: `False`): Use no GPU for training.
-- `--testing` (default: `False`): Set this to True if in testing mode, False for training.
+`argparse.ArgumentParser`: The argument parser with defined arguments.
 
-Inference Argument Parser
--------------------------
 
-The inference argument parser is used to classify unlabelled data.
 
-.. code-block:: python
+### `inference_argparser()`
 
-    def inference_argparser():
-        parser = argparse.ArgumentParser(description="Use Classifier on unlabelled data.")
-        parser.add_argument("--outpath", default="./preds/", help="Directory where you want to save the predictions")
-        parser.add_argument("--model_path", default="./checkpoints/model.ckpt", help="Path to the model file")
-        parser.add_argument("--datapath",  default="", help="Path to the folder containing the data to classify as Tar file")
-        parser.add_argument("--no_gpu", action="store_true", help="Use no GPU for training, default is False")
-        parser.add_argument("--no_TTA", action="store_true", help="Disable test-time augmentation")
+```eval_rst
+.. autofunction:: inference_argparser
+   :noindex:
+```
 
-        return parser
+Creates an argument parser for using the classifier on unlabeled data.
 
-### Arguments
+**Arguments:**
 
-- `--outpath` (default: `./preds/`): Directory where you want to save the predictions.
-- `--model_path` (default: `./checkpoints/model.ckpt`): Path to the trained model file to be used for inference.
-- `--datapath` (default: `""`): Path to the folder containing the data to classify as Tar file.
-- `--no_gpu` (default: `False`): Use no GPU for training.
-- `--no_TTA` (default: `False`): Disable test-time augmentation.
+* `--batch_size` (int): Batch size for inference. Default is 180.
+* `--outpath` (str): Directory where predictions will be saved. Default is "./preds/".
+* `--model_path` (str): Path to the model checkpoint file. Default is "./checkpoints/model.ckpt".
+* `--datapath` (str): Path to the tar file containing the data to classify. Default is "/store/empa/em09/aquascope/phyto.tar".
+* `--no_gpu` (flag): Use no GPU for inference. Default is False.
+* `--no_TTA` (flag): Disable test-time augmentation. Default is False.
+* `--gpu_id` (int): GPU ID to use for inference. Default is 0.
+* `--limit_pred_batches` (int): Limit the number of batches to predict. Default is 0, meaning no limit, set a low number to debug.
+* `--prog_bar` (flag): Enable progress bar. Default is False.
+
+**Returns:**
+
+`argparse.ArgumentParser`: The argument parser with defined arguments.
+
+
+
+**Example Usage:**
+
+```python
+if __name__ == "__main__":
+    parser = argparser()  # or inference_argparser()
+    args = parser.parse_args()
+    print(args)
+```
