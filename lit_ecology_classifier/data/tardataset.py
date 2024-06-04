@@ -51,8 +51,9 @@ class TarImageDataset(Dataset):
         self._define_transforms()
         # Load image information from the tar file
         self.image_infos = self._load_image_infos()
-        if rest_classes!=[]:
+        if rest_classes!=[] :
             self._filter_rest_classes()
+
 
 
 
