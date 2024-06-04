@@ -15,41 +15,75 @@ Before you begin, ensure you have the following installed:
 Installation
 ------------
 
-1. **Clone the Repository**
+# Lit Ecology Quickstart on Daint-GPU (CSCS)
 
-   First, clone the repository to your local machine. You can skip this step if you have already downloaded the package.
+This guide will help you quickly set up the Lit Ecology classifier on the Daint-GPU system at CSCS.
 
-   .. code-block:: bash
+## Prerequisites
 
-       git clone https://github.com/kaechb/lit_ecology_classifier.git
-       cd lit_ecology_classifier
+* Access to the Daint-GPU system (CSCS).
+* Basic knowledge of Python environments and module systems.
 
-2. **Create a Virtual Environment**
+## Steps
 
-   It's recommended to use a virtual environment to manage dependencies. Create and activate a virtual environment using `venv` or `conda`.
+1. **Navigate to your scratch space:**
 
-   Using `venv`:
+```bash
+cd $SCRATCH
+```
 
-   .. code-block:: bash
+2. **Load necessary modules:**
 
-       python -m venv env
-       source env/bin/activate  # On Windows, use `env\Scripts\activate`
+```bash
+module load daint-gpu cray-python
+```
 
-   Using `conda`:
+3. **Create a Python virtual environment:**
 
-   .. code-block:: bash
+```bash
+python -m venv lit_ecology
+source lit_ecology/bin/activate
+```
 
-       conda create --name lit_ecology python=3.8
-       conda activate lit_ecology
+4. **Source the model script (replace with the actual path):**
 
-3. **Install the Package**
+```bash
+source get_model.sh
+```
 
-   Install the package and its dependencies using `pip`.
+5. **Create directories for parameters and phyto data:**
 
-   .. code-block:: bash
+```bash
+mkdir params
+mkdir params/phyto
+```
 
-       pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-       pip install .
+6. **Upgrade pip and install PyTorch:**
+
+```bash
+lit_ecology/bin/python -m pip install --upgrade pip
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+7. **Install lit_ecology_classifier and timm:**
+
+```bash
+pip install lit_ecology_classifier
+pip install timm==0.9.2
+```
+
+8. **Create a directory for Slurm scripts:**
+
+```bash
+mkdir slurm
+```
+
+
+## Important Notes:
+
+* **Replace placeholders:** Replace the placeholders (e.g., `/store/empa/...`) with the actual paths to your files and directories.
+* **GPU version:** Make sure that the version of the cudatoolkit installed in the venv matches the version of the GPU on the cluster (here cu118).
+* **Slurm scripts:** You'll likely need to create Slurm scripts in the `slurm` directory to run your jobs efficiently on the cluster. Refer to the official CSCS documentation for guidance on writing Slurm scripts.
 
 Usage
 -----
@@ -127,7 +161,7 @@ Additional Resources
 Data Structure Details
 ----------------------
 
-The `TarImageDataset` class expects the data to be structured as follows:
+The `TarImageDataset` or `ImageFolderDataset` class expects the data to be structured as follows:
 
 - The root directory should contain subdirectories for each class.
 - Each subdirectory should contain the image files for that class.
@@ -148,9 +182,4 @@ Example structure:
     └── ...
 
 Compress the `dataset_name` directory into a `.tar` or `.zip` file before using it with the `lit_ecology_classifier`.
-
-.. code-block:: bash
-
-    tar -cvf dataset_name.tar dataset_name/
-    # or
-    zip -r dataset_name.zip dataset_name/
+The code will automatically deduce form the datapath whether it is .tar or folder based dataset.
