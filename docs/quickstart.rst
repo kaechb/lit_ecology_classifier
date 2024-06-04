@@ -139,19 +139,6 @@ Usage
 
    You can view the generated documentation by opening `docs/_build/html/index.html` in your web browser.
 
-Example
--------
-
-Here's an example workflow:
-
-1. Clone the repository and navigate to the project directory.
-2. Create and activate a virtual environment.
-3. Install dependencies.
-4. Prepare your dataset.
-5. Run the training script.
-6. Evaluate the model.
-7. Generate and view the documentation.
-
 Additional Resources
 --------------------
 
