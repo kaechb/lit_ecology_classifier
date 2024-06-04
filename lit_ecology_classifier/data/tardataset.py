@@ -14,6 +14,7 @@ from torchvision import transforms
 from torchvision.transforms.v2 import AugMix, Compose, Normalize, RandomHorizontalFlip, RandomRotation, Resize, ToDtype, ToImage
 
 from ..helpers.helpers import define_priority_classes, define_rest_classes
+from typing import Any
 
 
 class TarImageDataset(Dataset):
@@ -29,7 +30,7 @@ class TarImageDataset(Dataset):
         TTA (bool): Indicates if Test Time Augmentation should be applied during testing.
     """
 
-    def __init__(self, tar_path: str, class_map_path: str, priority_classes: list, rest_classes:list,train: bool, TTA: bool = False):
+    def __init__(self, tar_path: str,class_map: dict, priority_classes:list, rest_classes:list, TTA: bool = False, train: bool = False):
         """
         Initializes the TarImageDataset with paths and modes.
 
@@ -42,49 +43,17 @@ class TarImageDataset(Dataset):
         """
         self.tar_path = tar_path
         self.TTA = TTA
+        self.class_map = class_map
         self.train = train
-        self.class_map_path = class_map_path
         self.priority_classes = priority_classes
         self.rest_classes = rest_classes
-
-        # Load priority classes and adjust class map accordingly
-        if self.priority_classes != []:
-
-            logging.info(f"Priority classes not None. Loading priority classes from {self.priority_classes}")
-
-            priority_postfix = "_priority"
-            logging.info(f"Priority classes loaded: {self.priority_classes}")
-            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{priority_postfix}.json")
-            logging.info(f"Class map path set to {self.class_map_path}")
-
-        elif self.rest_classes != []:
-
-            logging.info(f"rest classes not None. Loading rest classes from {self.rest_classes}")
-
-            rest_postfix = "_rest"
-            logging.info(f"rest classes loaded: {self.rest_classes}")
-            self.class_map_path = self.class_map_path.replace("class_map.json", f"class_map{rest_postfix}.json")
-            logging.info(f"Class map path set to {self.class_map_path}")
-
-        # Load class map from JSON or extract it from the tar file if not present
-        if not os.path.exists(self.class_map_path):
-            if not train:
-                raise FileNotFoundError(f"Class map not found at {self.class_map_path}. Class map needs to be present for testing.")
-            logging.info(f"Class map not found at {self.class_map_path}. Extracting class map from tar file.")
-            self._extract_class_map(tar_path)
-            logging.info(f"Class map saved to {self.class_map_path}")
-        else:
-            logging.info(f"Loading class map from {self.class_map_path}")
-            with open(self.class_map_path, "r") as json_file:
-                self.class_map = json.load(json_file)
-            logging.info(f"Class map loaded.")
-
         # Transformation sequences for training and validation/testing
         self._define_transforms()
         # Load image information from the tar file
         self.image_infos = self._load_image_infos()
-        if self.rest_classes:
+        if rest_classes!=[]:
             self._filter_rest_classes()
+
 
 
     def _filter_rest_classes(self):
@@ -100,10 +69,9 @@ class TarImageDataset(Dataset):
         self.image_infos = filtered_image_infos
         logging.info(f"Filtered dataset to {len(self.image_infos)} samples.")
 
-
     def _define_transforms(self):
-        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225] # ImageNet mean and std
-        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), Resize((224, 224)), ToDtype(torch.float32, scale=True), AugMix(), Normalize(mean, std)])
+        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]  # ImageNet mean and std
+        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(30), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         self.val_transforms = Compose([ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         if self.TTA:
             self.rotations = {
@@ -157,59 +125,7 @@ class TarImageDataset(Dataset):
                     image_infos.append(member)
         return image_infos
 
-    def _extract_class_map(self, tar_path):
-        """
-        Extracts the class map from the contents of the tar file and saves it to a JSON file.
-        """
-        logging.info("Extracting class map from tar file.")
-        class_map = {}
 
-        with tarfile.open(tar_path, "r") as tar:
-            # Temporary set to track folders that contain images
-            folders_with_images = set()
-
-            # First pass: Identify folders containing images
-            for member in tar.getmembers():
-                if member.isdir():
-                    continue  # Skip directories
-                if member.isfile() and member.name.lower().endswith(("jpg", "jpeg", "png")):
-                    class_name = os.path.basename(os.path.dirname(member.name))
-                    folders_with_images.add(class_name)
-
-            # Second pass: Build the class map only for folders with images
-            for member in tar.getmembers():
-                if member.isdir():
-                    continue  # Skip directories
-                class_name = os.path.basename(os.path.dirname(member.name))
-                if class_name in folders_with_images:
-                    if class_name not in class_map:
-                        class_map[class_name] = []
-                    class_map[class_name].append(member.name)
-
-        # Create a sorted list of class names and map them to indices
-        sorted_class_names = sorted(class_map.keys())
-        logging.info(f"Found {len(sorted_class_names)} classes.")
-        self.class_map = {class_name: idx for idx, class_name in enumerate(sorted_class_names)}
-        if self.priority_classes != []:
-
-            logging.info(f'priority_classes not set to []. Defining priority class_map')
-            for key in self.priority_classes:
-                if key not in self.class_map.keys():
-                    raise KeyError(f"Priority class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
-            self.class_map = define_priority_classes(self.priority_classes)
-        if self.rest_classes != []:
-
-            logging.info(f'rest_classes not set to []. Defining rest class_map')
-            for key in self.rest_classes:
-                if key not in self.class_map.keys():
-                    raise KeyError(f"rest class {key} not found in class map. Keys of class map: {pprint.pformat(self.class_map.keys())}")
-            self.class_map = define_rest_classes(self.rest_classes)
-
-        logging.info(f"Class map created:\n{pprint.pformat(self.class_map)}")
-        logging.info(f"Saving class map to {self.class_map_path}")
-        os.makedirs(os.path.dirname(self.class_map_path), exist_ok=True)
-        with open(self.class_map_path, "w") as json_file:
-            json.dump(self.class_map, json_file, indent=4)
 
     def get_label_from_filename(self, filename):
         """
@@ -222,7 +138,7 @@ class TarImageDataset(Dataset):
             int: The label index corresponding to the class.
         """
         label = filename.split("/")[1]
-        if self.priority_classes != []:
+        if self.priority_classes!=[]:
             label = self.class_map.get(label, 0)
         else:
             label = self.class_map[label]
