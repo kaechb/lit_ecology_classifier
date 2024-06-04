@@ -120,6 +120,7 @@ class LitClassifier(LightningModule):
         """
         if self.hparams.TTA:
             probs = self.TTA(batch)
+            logits=probs
             y=batch[1]
         else:
             x, y = batch

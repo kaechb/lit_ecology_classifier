@@ -182,6 +182,7 @@ def define_rest_classes(priority_classes):
     return class_map
 
 
+
 def plot_score_distributions(all_scores, all_preds, class_names, true_label):
     """
     Plot the distribution of prediction scores for each class in separate plots.
@@ -293,9 +294,9 @@ def setup_callbacks(priority_classes, ckpt_name):
         list: A list of configured callbacks including EarlyStopping, ModelCheckpoint, and ModelSummary.
     """
     callbacks = []
-    ckpt_name = ckpt_name+"-{epoch:02d}-{val_acc:.2f}" if len(priority_classes )==0 else ckpt_name+"-{epoch:02d}-{val_acc:.2f}-{val_false_positives:.2f}"
-    monitor = "val_acc" if len(priority_classes )==0 else "val_false_positives"
-    mode = "max" if not len(priority_classes )==0 else "min"
+    ckpt_name = ckpt_name + "-{epoch:02d}-{val_acc:.4f}" if len(priority_classes) == 0 else ckpt_name + "-{epoch:02d}-{val_acc:.4f}-{val_false_positives:.4f}"
+    monitor = "val_acc" if len(priority_classes) == 0 else "val_precision"
+    mode = "max"
     callbacks.append(ModelCheckpoint(filename=ckpt_name, monitor=monitor, mode=mode, save_top_k=5))
     callbacks.append(ModelSummary())
     return callbacks

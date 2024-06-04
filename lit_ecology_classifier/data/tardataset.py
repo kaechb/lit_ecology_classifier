@@ -6,6 +6,7 @@ import pprint
 import random
 import tarfile
 from collections import defaultdict
+from typing import Any
 
 import torch
 from PIL import Image
@@ -71,7 +72,7 @@ class TarImageDataset(Dataset):
 
     def _define_transforms(self):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]  # ImageNet mean and std
-        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(30), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
+        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(180), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         self.val_transforms = Compose([ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         if self.TTA:
             self.rotations = {
