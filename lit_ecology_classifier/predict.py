@@ -14,7 +14,6 @@ import torch
 from .data.datamodule import DataModule
 from .helpers.argparser import inference_argparser
 from .models.model import LitClassifier
-
 # Start timing the script
 time_begin = time()
 
@@ -40,7 +39,7 @@ if __name__ == '__main__':
 
     # Initialize the Data Module
     hparams = model.hparams # copy the hyperparameters from the model
-    model.hparams.batch_size *= 1
+    model.hparams.batch_size = args.batch_size
     model.hparams.TTA = not args.no_TTA # set the TTA flag based on the argument
     model.hparams.outpath = args.outpath
     model.hparams.datapath = args.datapath
@@ -50,8 +49,8 @@ if __name__ == '__main__':
     model.load_datamodule(data_module)
 
     # Initialize the Trainer and Perform Predictions
-    trainer = pl.Trainer(devices=torch.cuda.device_count() if not args.no_gpu else 0, strategy="ddp" if torch.cuda.device_count() > 1 else "auto",
-    enable_progress_bar=True, default_root_dir=args.outpath)
+    trainer = pl.Trainer(devices=[args.gpu_id] if not args.no_gpu else None, strategy= "auto",
+    enable_progress_bar=args.prog_bar, default_root_dir=args.outpath,limit_predict_batches=args.limit_pred_batches if args.limit_pred_batches > 0 else None)
     trainer.predict(model, datamodule=data_module)
 
     # Calculate and log the total time taken for prediction

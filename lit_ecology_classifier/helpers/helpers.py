@@ -1,17 +1,57 @@
+import json
+import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sklearn
 
 import torch
+import torch.nn.functional as F
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint, ModelSummary, StochasticWeightAveraging
-import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
-import json
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from torch import nn
+from torch.autograd import Variable
+import tarfile
+import os
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=0, alpha=None, size_average=True):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        if isinstance(alpha, (float, int)):
+            self.alpha = torch.Tensor([alpha, 1 - alpha])
+        if isinstance(alpha, list):
+            self.alpha = torch.Tensor(alpha)
+        self.size_average = size_average
+
+    def forward(self, input, target):
+        if input.dim() > 2:
+            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W => N,C,H*W
+            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
+            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
+        target = target.view(-1, 1)
+
+        logpt = F.log_softmax(input, dim=1)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = Variable(logpt.data.exp())
+
+        if self.alpha is not None:
+            if self.alpha.type() != input.data.type():
+                self.alpha = self.alpha.type_as(input.data)
+            at = self.alpha.gather(0, target.data.view(-1))
+            logpt = logpt * Variable(at)
+
+        loss = -1 * (1 - pt) ** self.gamma * logpt
+        if self.size_average:
+            return loss.mean()
+        else:
+            return loss.sum()
 
 
-
-def output_results(outpath, im_names, labels, scores):
+def output_results(outpath, im_names, labels, scores,priority_classes=False,rest_classes=False,tar_file=False):
     """
     Output the prediction results to a file.
 
@@ -22,10 +62,12 @@ def output_results(outpath, im_names, labels, scores):
     """
 
     labels = labels.tolist()
-    base_filename = f"{outpath}/predictions"
+    base_filename = f"{outpath}/predictions_lit_ecology_classifier"+("_priority" if priority_classes else "")+("_rest" if rest_classes else "")
     file_path = f"{base_filename}.txt"
-    lines = [f"\n{img}------------------ {label}/{score}" for img, label,score in zip(im_names, labels,scores)]
-    with open(file_path, "w") as f:
+    if tar_file:
+        im_names = [img.name for img in im_names]
+    lines = [f"{img}------------------ {label}/{score}\n" for img, label,score in zip(im_names, labels,scores)]
+    with open(file_path, "w+") as f:
         f.writelines(lines)
 
 
@@ -62,8 +104,10 @@ def plot_confusion_matrix(all_labels, all_preds, class_names):
     confusion_matrix = sklearn.metrics.confusion_matrix(all_labels.cpu(), all_preds.cpu(), labels=class_indices)
     confusion_matrix_norm = sklearn.metrics.confusion_matrix(all_labels.cpu(), all_preds.cpu(), normalize="pred", labels=class_indices)
     num_classes = confusion_matrix.shape[0]
-    fig, ax = plt.subplots(figsize=(15, 15))
-    fig2, ax2 = plt.subplots(figsize=(15, 15))
+    fig, ax = plt.subplots(figsize=(20, 20))
+    fig2, ax2 = plt.subplots(figsize=(20, 20))
+
+
     if len(class_names) != num_classes:
         print(f"Warning: Number of class names ({len(class_names)}) does not match the number of classes ({num_classes}) in confusion matrix.")
         class_names = class_names[:num_classes]
@@ -72,6 +116,7 @@ def plot_confusion_matrix(all_labels, all_preds, class_names):
     cmap = cvd_colormap()
     cm_display.plot(cmap=cmap, ax=ax, xticks_rotation=90)
     cm_display_norm.plot(cmap=cmap, ax=ax2, xticks_rotation=90)
+
     fig.tight_layout()
     fig2.tight_layout()
     return fig, fig2
@@ -130,6 +175,10 @@ class CosineWarmupScheduler(torch.optim.lr_scheduler._LRScheduler):
 def define_priority_classes(priority_classes):
     class_map = {class_name: i + 1 for i, class_name in enumerate(priority_classes)}
     class_map["rest"] = 0
+    return class_map
+
+def define_rest_classes(priority_classes):
+    class_map = {class_name: i for i, class_name in enumerate(priority_classes)}
     return class_map
 
 
@@ -244,10 +293,10 @@ def setup_callbacks(priority_classes, ckpt_name):
         list: A list of configured callbacks including EarlyStopping, ModelCheckpoint, and ModelSummary.
     """
     callbacks = []
-    monitor = "val_acc" if priority_classes == "" else "val_false_positives"
-    mode = "max" if not priority_classes == "" else "min"
-    callbacks.append(EarlyStopping(monitor=monitor, patience=3, mode=mode))
-    callbacks.append(ModelCheckpoint(filename=ckpt_name, monitor=monitor, mode=mode))
+    ckpt_name = ckpt_name+"-{epoch:02d}-{val_acc:.2f}" if len(priority_classes )==0 else ckpt_name+"-{epoch:02d}-{val_acc:.2f}-{val_false_positives:.2f}"
+    monitor = "val_acc" if len(priority_classes )==0 else "val_false_positives"
+    mode = "max" if not len(priority_classes )==0 else "min"
+    callbacks.append(ModelCheckpoint(filename=ckpt_name, monitor=monitor, mode=mode, save_top_k=5))
     callbacks.append(ModelSummary())
     return callbacks
 
@@ -280,3 +329,85 @@ def plot_reduced_classes(model, priority_classes):
     fig, fig2 = plot_confusion_matrix(all_labels, all_preds, inv_reduced_class_map)
     fig.savefig(f"{model.outpath}/reduced_confusion_matrix.png")
     fig2.savefig(f"{model.outpath}/reduced_confusion_matrix_norm.png")
+
+
+def setup_classmap(datapath="", priority_classes=[], rest_classes=[]):
+    if priority_classes != []:
+
+        logging.info(f"Priority classes not None. Loading priority classes from {priority_classes}")
+
+        logging.info(f"Priority classes set to: {priority_classes}")
+        class_map = define_priority_classes(priority_classes)
+
+    elif rest_classes != []:
+
+        logging.info(f"rest classes not None. Defining clas map from {rest_classes}")
+        class_map = define_rest_classes(rest_classes)
+
+    # Load class map from JSON or extract it from the tar file if not present
+    else:
+
+        logging.info(f" Extracting class map from tar file.")
+        class_map = _extract_class_map(datapath)
+
+    return class_map
+
+
+def _extract_class_map(tar_or_dir_path):
+    """
+    Extracts the class map from the contents of the tar file or directory and saves it to a JSON file.
+
+    Arguments:
+    tar_or_dir_path: str
+        Path to the tar file or directory containing the images.
+
+    Returns:
+    dict
+        A dictionary mapping class names to indices.
+    """
+    logging.info("Extracting class map.")
+    class_map = {}
+
+    if tarfile.is_tarfile(tar_or_dir_path):
+        logging.info("Detected tar file.")
+        with tarfile.open(tar_or_dir_path, "r") as tar:
+            # Temporary set to track folders that contain images
+            folders_with_images = set()
+
+            # First pass: Identify folders containing images
+            for member in tar.getmembers():
+                if member.isdir():
+                    continue  # Skip directories
+                if member.isfile() and member.name.lower().endswith(("jpg", "jpeg", "png")):
+                    class_name = os.path.basename(os.path.dirname(member.name))
+                    folders_with_images.add(class_name)
+
+            # Second pass: Build the class map only for folders with images
+            for member in tar.getmembers():
+                if member.isdir():
+                    continue  # Skip directories
+                class_name = os.path.basename(os.path.dirname(member.name))
+                if class_name in folders_with_images:
+                    if class_name not in class_map:
+                        class_map[class_name] = []
+                    class_map[class_name].append(member.name)
+
+    elif os.path.isdir(tar_or_dir_path):
+        logging.info("Detected directory.")
+        for root, _, files in os.walk(tar_or_dir_path):
+            for file in files:
+                if file.lower().endswith(("jpg", "jpeg", "png")):
+                    class_name = os.path.basename(root)
+                    if class_name not in class_map:
+                        class_map[class_name] = []
+                    class_map[class_name].append(os.path.join(root, file))
+
+    else:
+        raise ValueError("Provided path is neither a valid tar file nor a directory.")
+
+    # Create a sorted list of class names and map them to indices
+    sorted_class_names = sorted(class_map.keys())
+    logging.info(f"Found {len(sorted_class_names)} classes.")
+    class_map = {class_name: idx for idx, class_name in enumerate(sorted_class_names)}
+
+    return class_map

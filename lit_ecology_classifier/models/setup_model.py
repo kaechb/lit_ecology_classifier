@@ -4,7 +4,7 @@ import timm
 import torch
 from safetensors.torch import load_file
 
-def setup_model( finetune, num_classes,checkpoint_path="checkpoints/backbone.safetensors", **kwargs):
+def setup_model( pretrained=False, num_classes=None,checkpoint_path="checkpoints/backbone.safetensors", **kwargs):
     """
     Set up and return the specified model architecture.
 
@@ -37,7 +37,7 @@ def setup_model( finetune, num_classes,checkpoint_path="checkpoints/backbone.saf
     # Modify the model to match the number of classes in your dataset
     model.head = torch.nn.Linear(model.head.in_features, num_classes)
 
-    set_trainable_params(model, finetune=finetune)
+    set_trainable_params(model, finetune=pretrained)
 
     # Total parameters and trainable parameters
     total_params = sum(p.numel() for p in model.parameters())

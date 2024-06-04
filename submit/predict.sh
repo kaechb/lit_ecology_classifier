@@ -16,4 +16,4 @@ cd ${SCRATCH}/lit_ecology_classifier
 module purge
 module load daint-gpu cray-python
 source lit_ecology/bin/activate
-python -m lit_ecology_classifier.predict
+python -m lit_ecology_classifier.predict --datapath images_5p0xMAG_oct2023.tar --outpath oct2023 --model_path checkpoints/focal_new.ckpt --batch_size 32 
