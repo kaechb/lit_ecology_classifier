@@ -1,14 +1,13 @@
 ArgumentParser
-=================================
+==============
 
 This module provides functions to create argument parsers for configuring, training, and running the image classification model.
 
-### `argparser()`
+argparser()
+-----------
 
-```eval_rst
 .. autofunction:: argparser
    :noindex:
-```
 
 Creates an argument parser for configuring and training the machine learning model.
 
@@ -31,19 +30,15 @@ Creates an argument parser for configuring and training the machine learning mod
 * `--loss` (str): Loss function to use (choices: "cross_entropy", "focal"). Default is "cross_entropy".
 * `--no_TTA` (flag): Enable Test Time Augmentation. Default is False.
 
-
 **Returns:**
 
 `argparse.ArgumentParser`: The argument parser with defined arguments.
 
+inference_argparser()
+---------------------
 
-
-### `inference_argparser()`
-
-```eval_rst
 .. autofunction:: inference_argparser
    :noindex:
-```
 
 Creates an argument parser for using the classifier on unlabeled data.
 
@@ -63,13 +58,12 @@ Creates an argument parser for using the classifier on unlabeled data.
 
 `argparse.ArgumentParser`: The argument parser with defined arguments.
 
+Example Usage
+-------------
 
+.. code-block:: python
 
-**Example Usage:**
-
-```python
-if __name__ == "__main__":
-    parser = argparser()  # or inference_argparser()
-    args = parser.parse_args()
-    print(args)
-```
+   if __name__ == "__main__":
+       parser = argparser()  # or inference_argparser()
+       args = parser.parse_args()
+       print(args)
