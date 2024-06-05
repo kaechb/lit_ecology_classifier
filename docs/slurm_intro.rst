@@ -38,7 +38,7 @@ Below is a detailed explanation of the provided SLURM job submission script.
     module purge
     module load daint-gpu cray-python
     source lit_ecology/bin/activate
-    python -m lit_ecology_classifier.main --max_epochs 2 --dataset phyto --priority config/priority.json
+    python -m lit_ecology_classifier.predict --datapath /path/to/data --outpath /outdirectory --model_path /path/to/model
 
 ### Breakdown of the Script
 
