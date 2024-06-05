@@ -7,8 +7,8 @@ from lightning import LightningDataModule
 from lightning.pytorch.utilities.combined_loader import CombinedLoader
 from torch.utils.data import DataLoader, Dataset, DistributedSampler, random_split
 
+from ..data.imagedataset import ImageFolderDataset
 from ..data.tardataset import TarImageDataset
-
 from ..helpers.helpers import TTA_collate_fn
 
 
@@ -27,18 +27,20 @@ class DataModule(LightningDataModule):
         splits (Iterable): Proportions to split the dataset into training, validation, and testing.
     """
 
-    def __init__(self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, class_map: dict={},  priority_classes: list = [], rest_classes: list=[], splits: Iterable = [0.7, 0.15], **kwargs):
+    def __init__(
+        self, datapath: str, batch_size: int, dataset: str, TTA: bool = False, class_map: dict = {}, priority_classes: list = [], rest_classes: list = [], splits: Iterable = [0.7, 0.15], **kwargs
+    ):
         super().__init__()
         self.datapath = datapath
-        self.TTA = TTA # Enable Test Time Augmentation if testing is True
+        self.TTA = TTA  # Enable Test Time Augmentation if testing is True
         self.batch_size = batch_size
         self.dataset = dataset
         self.train_split, self.val_split = splits
         self.class_map = class_map
         self.priority_classes = priority_classes
         self.rest_classes = rest_classes
+        self.use_multi = not kwargs.get("no_use_multi", False)
         # Verify that class map exists for testing mode
-
 
     def setup(self, stage=None):
         """
@@ -51,32 +53,29 @@ class DataModule(LightningDataModule):
         # Load the dataset
         if stage != "predict":
             if self.datapath.find(".tar") == -1:
-                full_dataset = ImageFolderDataset(self.datapath,self.class_map, self.priority_classes,rest_classes=self.rest_classes, TTA=self.TTA,train=True)
+                full_dataset = ImageFolderDataset(self.datapath, self.class_map, self.priority_classes, rest_classes=self.rest_classes, TTA=self.TTA, train=True)
             else:
-                full_dataset = TarImageDataset(self.datapath,self.class_map,  self.priority_classes,rest_classes=self.rest_classes, TTA=self.TTA,train=True)
-
+                full_dataset = TarImageDataset(self.datapath, self.class_map, self.priority_classes, rest_classes=self.rest_classes, TTA=self.TTA, train=True)
 
             print("Number of classes:", len(self.class_map))
 
             # Calculate dataset splits
-            self.train_size = int(self.train_split * len(full_dataset))
+            train_size = int(self.train_split * len(full_dataset))
             val_size = int(self.val_split * len(full_dataset))
             test_size = len(full_dataset) - train_size - val_size
             print("Train size:", train_size)
             print("Validation size:", val_size)
             print("Test size:", test_size)
             # Randomly split the dataset into train, validation, and test sets
-            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [self.train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
+            self.train_dataset, self.val_dataset, self.test_dataset = random_split(full_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
             # Set train flag to False for validation and test datasets
             self.val_dataset.train = False
             self.test_dataset.train = False
         else:
             if self.datapath.find(".tar") == -1:
-                self.predict_dataset = ImageFolderDataset(self.datapath,self.class_map, self.priority_classes,self.rest_classes, TTA=self.TTA, train=False)
+                self.predict_dataset = ImageFolderDataset(self.datapath, self.class_map, self.priority_classes, self.rest_classes, TTA=self.TTA, train=False)
             else:
-                self.predict_dataset = TarImageDataset(self.datapath,self.class_map, self.priority_classes,self.rest_classes, TTA=self.TTA, train=False)
-
-
+                self.predict_dataset = TarImageDataset(self.datapath, self.class_map, self.priority_classes, self.rest_classes, TTA=self.TTA, train=False)
 
     def train_dataloader(self):
         """
@@ -90,9 +89,9 @@ class DataModule(LightningDataModule):
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=True if sampler is None else False,
             sampler=sampler,
-            num_workers= 8,
+            num_workers=8,
             pin_memory=True,
             drop_last=True,
         )
@@ -103,14 +102,14 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the validation dataset.
         """
-        sampler = DistributedSampler(self.train_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
+        sampler = DistributedSampler(self.val_dataset) if torch.cuda.device_count() > 1 and self.use_multi else None
 
         loader = DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            sampler=sampler,
-            num_workers= 8 ,
+            sampler=sampler ,
+            num_workers=8,
             pin_memory=True,
             drop_last=False,
         )
@@ -120,8 +119,8 @@ class DataModule(LightningDataModule):
                 self.val_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                sampler=sampler,
-                num_workers= 8,
+                sampler=sampler  ,
+                num_workers=8,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -141,7 +140,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=None,
-                num_workers= 8,
+                num_workers=8,
                 pin_memory=True,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -151,7 +150,7 @@ class DataModule(LightningDataModule):
                 self.test_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers= 8,
+                num_workers=8,
                 pin_memory=True,
                 drop_last=False,
             )
@@ -170,7 +169,7 @@ class DataModule(LightningDataModule):
                 batch_size=self.batch_size,
                 shuffle=False,
                 sampler=None,
-                num_workers= 8,
+                num_workers=8,
                 pin_memory=False,
                 drop_last=False,
                 collate_fn=TTA_collate_fn,
@@ -180,25 +179,22 @@ class DataModule(LightningDataModule):
                 self.predict_dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                num_workers= 8,
+                num_workers=8,
                 pin_memory=False,
                 drop_last=False,
             )
         return loader
 
 
-
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     import json
-    with open("config/rest.json") as file:
-        rest=json.load(file)["rest_classes"]
-    # Create an instance of the PlanktonDataModule with the specified parameters
-    dm = DataModule(
-        "./phyto.tar", dataset="phyto", batch_size=1024, testing=False, use_multi=False, rest_classes=rest, splits=[0.7, 0.15]
-    )
 
+    with open("config/rest.json") as file:
+        rest = json.load(file)["rest_classes"]
+    # Create an instance of the PlanktonDataModule with the specified parameters
+    dm = DataModule("./phyto.tar", dataset="phyto", batch_size=1024, testing=False, use_multi=False, rest_classes=rest, splits=[0.7, 0.15])
 
     # Set up datasets for the 'fit' stage
     dm.setup("fit")

@@ -20,8 +20,8 @@ class LitClassifier(LightningModule):
         """
         super().__init__()
         self.save_hyperparameters()
-        print("class_map",self.hparams.class_map)
-        if 'class_map' not in self.hparams:
+
+        if 'class_map' not in self.hparams.keys():
             self.hparams.class_map = setup_classmap(datapath=self.hparams['datapath'], priority_classes=self.hparams['priority_classes'], rest_classes=self.hparams['rest_classes'])
             self.class_map = self.hparams.class_map
             self.hparams.num_classes = len(self.class_map.keys())
@@ -122,6 +122,7 @@ class LitClassifier(LightningModule):
         """
         if self.hparams.TTA:
             probs = self.TTA(batch)
+            logits=probs
             y=batch[1]
         else:
             x, y = batch
@@ -211,8 +212,8 @@ class LitClassifier(LightningModule):
         fig_score = plot_score_distributions(all_scores, all_preds, self.inverted_class_map.values(), all_labels)
         balanced_acc = balanced_accuracy_score(all_labels.cpu().numpy(), all_preds.cpu().numpy())
         self.log("test_balanced_acc", balanced_acc, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
-        false_positives = torch.sum((all_labels == 0) & (all_preds != 0)) / torch.sum(all_labels == 0)
-        self.log("test_false_positives", false_positives.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        precision =  torch.sum((all_preds!= 0) & (all_labels!=0) ).item()/max(torch.sum((all_preds!= 0) & (all_labels!=0) ).item()+torch.sum((all_preds != 0) & (all_labels == 0)).item(),1)
+        self.log("test_precision", precision, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         fig, fig2 = plot_confusion_matrix(all_labels, all_preds, self.inverted_class_map.values())
 
         if self.hparams.use_wandb:
@@ -222,7 +223,7 @@ class LitClassifier(LightningModule):
         else:
             self.acc=(all_labels == all_preds).float().mean()
             print("test_balanced_acc", balanced_acc)
-            print("test_false_positives", false_positives)
+            print("test_precision", precision)
             print("test_acc", self.acc)
             self.f1=f1_score(all_labels.cpu(), all_preds.cpu(), average="weighted")
             print("test_f1", self.f1)
