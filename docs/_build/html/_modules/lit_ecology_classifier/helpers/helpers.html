@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>lit_ecology_classifier.helpers.helpers &mdash; lit_ecology_classifier 0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8dde47fa"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            lit_ecology_classifier
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../lightning_intro.html">Introduction to PyTorch Lightning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">lit_ecology_classifier</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">lit_ecology_classifier</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">lit_ecology_classifier.helpers.helpers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for lit_ecology_classifier.helpers.helpers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">sklearn</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">lightning.pytorch.callbacks</span> <span class="kn">import</span> <span class="n">EarlyStopping</span><span class="p">,</span> <span class="n">LearningRateMonitor</span><span class="p">,</span> <span class="n">ModelCheckpoint</span><span class="p">,</span> <span class="n">ModelSummary</span><span class="p">,</span> <span class="n">StochasticWeightAveraging</span>
+
+
+<div class="viewcode-block" id="output_results">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.output_results">[docs]</a>
+<span class="k">def</span> <span class="nf">output_results</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">im_names</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Output the prediction results to a file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        outpath (str): Output directory path.</span>
+<span class="sd">        im_names (list): List of image filenames.</span>
+<span class="sd">        labels (list): List of predicted labels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">base_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outpath</span><span class="si">}</span><span class="s2">/predictions&quot;</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_filename</span><span class="si">}</span><span class="s2">.txt&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">img</span><span class="si">}</span><span class="s2">------------------ </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">im_names</span><span class="p">,</span> <span class="n">labels</span><span class="p">)]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="gmean">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.gmean">[docs]</a>
+<span class="k">def</span> <span class="nf">gmean</span><span class="p">(</span><span class="n">input_x</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the geometric mean of the input tensor along the specified dimension.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_x (torch.Tensor): Input tensor.</span>
+<span class="sd">        dim (int): Dimension along which to compute the geometric mean.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        torch.Tensor: Geometric mean of the input tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">input_x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">log_x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="plot_confusion_matrix">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.plot_confusion_matrix">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_confusion_matrix</span><span class="p">(</span><span class="n">all_labels</span><span class="p">,</span> <span class="n">all_preds</span><span class="p">,</span> <span class="n">class_names</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot and return confusion matrices (absolute and normalized).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        all_labels (torch.Tensor): True labels.</span>
+<span class="sd">        all_preds (torch.Tensor): Predicted labels.</span>
+<span class="sd">        class_names (list): List of class names.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (figure for absolute confusion matrix, figure for normalized confusion matrix)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">class_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">))</span>
+    <span class="n">confusion_matrix</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">all_labels</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">all_preds</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">labels</span><span class="o">=</span><span class="n">class_indices</span><span class="p">)</span>
+    <span class="n">confusion_matrix_norm</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">all_labels</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">all_preds</span><span class="o">.</span><span class="n">cpu</span><span class="p">(),</span> <span class="n">normalize</span><span class="o">=</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">class_indices</span><span class="p">)</span>
+    <span class="n">num_classes</span> <span class="o">=</span> <span class="n">confusion_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+    <span class="n">fig2</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_classes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Number of class names (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) does not match the number of classes (</span><span class="si">{</span><span class="n">num_classes</span><span class="si">}</span><span class="s2">) in confusion matrix.&quot;</span><span class="p">)</span>
+        <span class="n">class_names</span> <span class="o">=</span> <span class="n">class_names</span><span class="p">[:</span><span class="n">num_classes</span><span class="p">]</span>
+    <span class="n">cm_display</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">ConfusionMatrixDisplay</span><span class="p">(</span><span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">display_labels</span><span class="o">=</span><span class="n">class_names</span><span class="p">)</span>
+    <span class="n">cm_display_norm</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">ConfusionMatrixDisplay</span><span class="p">(</span><span class="n">confusion_matrix_norm</span><span class="p">,</span> <span class="n">display_labels</span><span class="o">=</span><span class="n">class_names</span><span class="p">)</span>
+    <span class="n">cm_display</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">xticks_rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+    <span class="n">cm_display_norm</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">,</span> <span class="n">xticks_rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig2</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">fig2</span></div>
+
+
+
+<div class="viewcode-block" id="CosineWarmupScheduler">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.CosineWarmupScheduler">[docs]</a>
+<span class="k">class</span> <span class="nc">CosineWarmupScheduler</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">_LRScheduler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Learning rate scheduler with cosine annealing and warmup.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        optimizer (torch.optim.Optimizer): Wrapped optimizer.</span>
+<span class="sd">        warmup (int): Number of warmup steps.</span>
+<span class="sd">        max_iters (int): Total number of iterations.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        get_lr: Compute the learning rate at the current step.</span>
+<span class="sd">        get_lr_factor: Compute the learning rate factor at the current step.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">warmup</span><span class="p">,</span> <span class="n">max_iters</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warmup</span> <span class="o">=</span> <span class="n">warmup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iters</span> <span class="o">=</span> <span class="n">max_iters</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CosineWarmupScheduler.get_lr">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.CosineWarmupScheduler.get_lr">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_lr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">lr_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lr_factor</span><span class="p">(</span><span class="n">epoch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">base_lr</span> <span class="o">*</span> <span class="n">lr_factor</span> <span class="k">for</span> <span class="n">base_lr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_lrs</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CosineWarmupScheduler.get_lr_factor">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.CosineWarmupScheduler.get_lr_factor">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_lr_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
+        <span class="n">lr_factor</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">epoch</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iters</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iters</span><span class="p">:</span>
+            <span class="n">lr_factor</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iters</span> <span class="o">/</span> <span class="n">epoch</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">warmup</span><span class="p">:</span>
+            <span class="n">lr_factor</span> <span class="o">*=</span> <span class="n">epoch</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">warmup</span>
+        <span class="k">return</span> <span class="n">lr_factor</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="define_priority_classes">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.define_priority_classes">[docs]</a>
+<span class="k">def</span> <span class="nf">define_priority_classes</span><span class="p">(</span><span class="n">priority_classes</span><span class="p">):</span>
+    <span class="n">class_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">class_name</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">priority_classes</span><span class="p">)}</span>
+    <span class="n">class_map</span><span class="p">[</span><span class="s2">&quot;rest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">class_map</span></div>
+
+
+
+<div class="viewcode-block" id="plot_score_distributions">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.plot_score_distributions">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_score_distributions</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">all_preds</span><span class="p">,</span> <span class="n">class_names</span><span class="p">,</span> <span class="n">true_label</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot the distribution of prediction scores for each class in separate plots.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        all_scores (torch.Tensor): Confidence scores of the predictions.</span>
+<span class="sd">        all_preds (torch.Tensor): Predicted class indices.</span>
+<span class="sd">        class_names (list): List of class names.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of figures, each representing the score distribution for a class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert scores and predictions to CPU if not already</span>
+    <span class="n">all_scores</span> <span class="o">=</span> <span class="n">all_scores</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">all_preds</span> <span class="o">=</span> <span class="n">all_preds</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">true_label</span> <span class="o">=</span> <span class="n">true_label</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="c1"># List to hold the figures</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span> <span class="o">//</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="c1"># Creating a histogram for each class</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_names</span><span class="p">):</span>
+        <span class="c1"># Filter scores for predictions matching the current class</span>
+        <span class="n">sig_scores</span> <span class="o">=</span> <span class="n">all_scores</span><span class="p">[(</span><span class="n">true_label</span> <span class="o">==</span> <span class="n">i</span><span class="p">)][:,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">bkg_scores</span> <span class="o">=</span> <span class="n">all_scores</span><span class="p">[(</span><span class="n">true_label</span> <span class="o">!=</span> <span class="n">i</span><span class="p">)][:,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="c1"># Create a figure for the current class</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">bkg_scores</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Rest Counts&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+        <span class="n">y_axis</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+        <span class="n">y_axis</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">sig_scores</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Predicted Probability&quot;</span><span class="p">)</span>
+        <span class="n">y_axis</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Signal Counts&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">)</span>
+        <span class="n">y_axis</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="TTA_collate_fn">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.TTA_collate_fn">[docs]</a>
+<span class="k">def</span> <span class="nf">TTA_collate_fn</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collate function for test time augmentation (TTA).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        batch (dict): Dict of tuples containing images and labels.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        batch_images: All rotations stacked row-wise</span>
+<span class="sd">        batch_labels: Labels of the images</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">batch_images</span> <span class="o">=</span> <span class="p">{</span><span class="n">rot</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">rot</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;90&quot;</span><span class="p">,</span> <span class="s2">&quot;180&quot;</span><span class="p">,</span> <span class="s2">&quot;270&quot;</span><span class="p">]}</span>
+    <span class="n">batch_labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rotated_images</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">rot</span> <span class="ow">in</span> <span class="n">batch_images</span><span class="p">:</span>
+            <span class="n">batch_images</span><span class="p">[</span><span class="n">rot</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rotated_images</span><span class="p">[</span><span class="n">rot</span><span class="p">])</span>
+        <span class="n">batch_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">batch_images</span> <span class="o">=</span> <span class="p">{</span><span class="n">rot</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_images</span><span class="p">[</span><span class="n">rot</span><span class="p">])</span> <span class="k">for</span> <span class="n">rot</span> <span class="ow">in</span> <span class="n">batch_images</span><span class="p">}</span>
+    <span class="n">batch_labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">batch_labels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">batch_images</span><span class="p">,</span> <span class="n">batch_labels</span></div>
+
+
+
+<div class="viewcode-block" id="plot_loss_acc">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.plot_loss_acc">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_loss_acc</span><span class="p">(</span><span class="n">logger</span><span class="p">):</span>
+    <span class="c1"># Read the CSV file</span>
+    <span class="n">metrics_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">save_dir</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/version_</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">/metrics.csv&quot;</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">metrics_file</span><span class="p">)</span>
+
+    <span class="c1"># Plot the training loss</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span>
+    <span class="n">train_loss</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;train_loss&quot;</span><span class="p">]</span>
+    <span class="n">val_loss</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;val_loss&quot;</span><span class="p">]</span>
+    <span class="n">train_acc</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;train_acc&quot;</span><span class="p">]</span>
+    <span class="n">val_acc</span> <span class="o">=</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;val_acc&quot;</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">[</span><span class="n">train_loss</span> <span class="o">==</span> <span class="n">train_loss</span><span class="p">],</span> <span class="n">train_loss</span><span class="p">[</span><span class="n">train_loss</span> <span class="o">==</span> <span class="n">train_loss</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Training Loss&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">[</span><span class="n">val_loss</span> <span class="o">==</span> <span class="n">val_loss</span><span class="p">],</span><span class="n">val_loss</span><span class="p">[</span><span class="n">val_loss</span> <span class="o">==</span> <span class="n">val_loss</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Validation Loss&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Step&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Loss&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Loss vs Steps&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">[</span><span class="n">train_loss</span> <span class="o">==</span> <span class="n">train_loss</span><span class="p">],</span> <span class="n">train_acc</span><span class="p">[</span><span class="n">train_loss</span> <span class="o">==</span> <span class="n">train_loss</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Training Accuracy&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step</span><span class="p">[</span><span class="n">val_loss</span> <span class="o">==</span> <span class="n">val_loss</span><span class="p">],</span><span class="n">val_acc</span><span class="p">[</span><span class="n">val_loss</span> <span class="o">==</span> <span class="n">val_loss</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Validation Accuracy&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Step&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Accuracy&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Accuracy vs Steps&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">save_dir</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">/version_</span><span class="si">{</span><span class="n">logger</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">/loss_accuracy.png&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="setup_callbacks">
+<a class="viewcode-back" href="../../../lit_ecology_classifier.helpers.html#lit_ecology_classifier.helpers.helpers.setup_callbacks">[docs]</a>
+<span class="k">def</span> <span class="nf">setup_callbacks</span><span class="p">(</span><span class="n">priority_classes</span><span class="p">,</span> <span class="n">ckpt_name</span><span class="p">):</span>
+
+    <span class="n">callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">monitor</span> <span class="o">=</span> <span class="s2">&quot;val_acc&quot;</span> <span class="k">if</span> <span class="n">priority_classes</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="k">else</span> <span class="s2">&quot;val_false_positives&quot;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">priority_classes</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="k">else</span> <span class="s2">&quot;min&quot;</span>
+    <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EarlyStopping</span><span class="p">(</span><span class="n">monitor</span><span class="o">=</span><span class="n">monitor</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">))</span>
+    <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModelCheckpoint</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">ckpt_name</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="n">monitor</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">))</span>
+    <span class="n">callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ModelSummary</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">callbacks</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benno Kaech.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

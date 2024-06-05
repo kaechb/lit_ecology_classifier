@@ -182,6 +182,7 @@ def define_rest_classes(priority_classes):
     return class_map
 
 
+
 def plot_score_distributions(all_scores, all_preds, class_names, true_label):
     """
     Plot the distribution of prediction scores for each class in separate plots.
@@ -221,7 +222,7 @@ def plot_score_distributions(all_scores, all_preds, class_names, true_label):
     return fig
 
 
-def TTA_collate_fn(batch: dict):
+def TTA_collate_fn(batch: dict, train=False):
     """
     Collate function for test time augmentation (TTA).
 
@@ -234,13 +235,23 @@ def TTA_collate_fn(batch: dict):
     """
     batch_images = {rot: [] for rot in ["0", "90", "180", "270"]}
     batch_labels = []
-    for rotated_images, label in batch:
-        for rot in batch_images:
-            batch_images[rot].append(rotated_images[rot])
-        batch_labels.append(label)
-    batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
-    batch_labels = torch.tensor(batch_labels)
-    return batch_images, batch_labels
+    if train:
+        for rotated_images, label in batch:
+            for rot in batch_images:
+                batch_images[rot].append(rotated_images[rot])
+            batch_labels.append(label)
+        batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
+        batch_labels = torch.tensor(batch_labels)
+        return batch_images, batch_labels
+
+    else:
+        for rotated_images in batch:
+            for rot in batch_images:
+                batch_images[rot].append(rotated_images[rot])
+        batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
+        return batch_images
+
+
 
 
 
@@ -293,9 +304,9 @@ def setup_callbacks(priority_classes, ckpt_name):
         list: A list of configured callbacks including EarlyStopping, ModelCheckpoint, and ModelSummary.
     """
     callbacks = []
-    ckpt_name = ckpt_name+"-{epoch:02d}-{val_acc:.2f}" if len(priority_classes )==0 else ckpt_name+"-{epoch:02d}-{val_acc:.2f}-{val_false_positives:.2f}"
-    monitor = "val_acc" if len(priority_classes )==0 else "val_false_positives"
-    mode = "max" if not len(priority_classes )==0 else "min"
+    ckpt_name = ckpt_name + "-{epoch:02d}-{val_acc:.4f}" if len(priority_classes) == 0 else ckpt_name + "-{epoch:02d}-{val_acc:.4f}-{val_false_positives:.4f}"
+    monitor = "val_acc" if len(priority_classes) == 0 else "val_precision"
+    mode = "max"
     callbacks.append(ModelCheckpoint(filename=ckpt_name, monitor=monitor, mode=mode, save_top_k=5))
     callbacks.append(ModelSummary())
     return callbacks

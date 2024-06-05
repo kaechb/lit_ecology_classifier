@@ -6,6 +6,7 @@ import pprint
 import random
 import tarfile
 from collections import defaultdict
+from typing import Any
 
 import torch
 from PIL import Image
@@ -51,8 +52,10 @@ class TarImageDataset(Dataset):
         self._define_transforms()
         # Load image information from the tar file
         self.image_infos = self._load_image_infos()
-        if rest_classes!=[] :
+        if rest_classes!=[] and train:
             self._filter_rest_classes()
+        self.train=train
+
 
 
 
@@ -72,7 +75,7 @@ class TarImageDataset(Dataset):
 
     def _define_transforms(self):
         mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]  # ImageNet mean and std
-        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(30), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
+        self.train_transforms = Compose([ToImage(), RandomHorizontalFlip(), RandomRotation(180), AugMix(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         self.val_transforms = Compose([ToImage(), Resize((224, 224)), ToDtype(torch.float32, scale=True), Normalize(mean, std)])
         if self.TTA:
             self.rotations = {
@@ -112,8 +115,11 @@ class TarImageDataset(Dataset):
                 image = self.train_transforms(image)
             else:
                 image = self.val_transforms(image)
-            label = self.get_label_from_filename(image_info.name)
-            return image, label
+            if self.train:
+                label = self.get_label_from_filename(image_info.name)
+                return image, label
+            else:
+                return image
 
     def _load_image_infos(self):
         """
@@ -138,6 +144,7 @@ class TarImageDataset(Dataset):
         Returns:
             int: The label index corresponding to the class.
         """
+
         label = filename.split("/")[1]
         if self.priority_classes!=[]:
             label = self.class_map.get(label, 0)
