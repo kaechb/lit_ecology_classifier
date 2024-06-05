@@ -52,8 +52,10 @@ class TarImageDataset(Dataset):
         self._define_transforms()
         # Load image information from the tar file
         self.image_infos = self._load_image_infos()
-        if rest_classes!=[]:
+        if rest_classes!=[] and train:
             self._filter_rest_classes()
+        self.train=train
+
 
 
 
@@ -112,8 +114,11 @@ class TarImageDataset(Dataset):
                 image = self.train_transforms(image)
             else:
                 image = self.val_transforms(image)
-            label = self.get_label_from_filename(image_info.name)
-            return image, label
+            if self.train:
+                label = self.get_label_from_filename(image_info.name)
+                return image, label
+            else:
+                return image
 
     def _load_image_infos(self):
         """
@@ -138,6 +143,7 @@ class TarImageDataset(Dataset):
         Returns:
             int: The label index corresponding to the class.
         """
+
         label = filename.split("/")[1]
         if self.priority_classes!=[]:
             label = self.class_map.get(label, 0)

@@ -43,7 +43,7 @@ class LitClassifier(LightningModule):
         """
 
 
-        x = torch.cat([batch[0][str(i * 90)] for i in range(4)], dim=0)
+        x = torch.cat([batch[str(i * 90)] for i in range(4)], dim=0)
         logits = self(x).softmax(dim=1)
         logits = torch.stack(torch.chunk(logits, 4, dim=0))
         logits = gmean(logits, dim=0)
@@ -119,7 +119,7 @@ class LitClassifier(LightningModule):
             dict: Dictionary containing the loss and predictions.
         """
         if self.hparams.TTA:
-            probs = self.TTA(batch)
+            probs = self.TTA(batch[0])
             logits=probs
             y=batch[1]
         else:
@@ -188,7 +188,7 @@ class LitClassifier(LightningModule):
         """
         with torch.no_grad():
             if self.hparams.TTA:
-                probs = self.TTA(batch)
+                probs = self.TTA(batch[0])
                 y=batch[1]
             else:
                 x,y = batch

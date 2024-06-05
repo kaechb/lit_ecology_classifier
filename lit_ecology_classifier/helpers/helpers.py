@@ -222,7 +222,7 @@ def plot_score_distributions(all_scores, all_preds, class_names, true_label):
     return fig
 
 
-def TTA_collate_fn(batch: dict):
+def TTA_collate_fn(batch: dict, train=False):
     """
     Collate function for test time augmentation (TTA).
 
@@ -235,13 +235,23 @@ def TTA_collate_fn(batch: dict):
     """
     batch_images = {rot: [] for rot in ["0", "90", "180", "270"]}
     batch_labels = []
-    for rotated_images, label in batch:
-        for rot in batch_images:
-            batch_images[rot].append(rotated_images[rot])
-        batch_labels.append(label)
-    batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
-    batch_labels = torch.tensor(batch_labels)
-    return batch_images, batch_labels
+    if train:
+        for rotated_images, label in batch:
+            for rot in batch_images:
+                batch_images[rot].append(rotated_images[rot])
+            batch_labels.append(label)
+        batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
+        batch_labels = torch.tensor(batch_labels)
+        return batch_images, batch_labels
+
+    else:
+        for rotated_images in batch:
+            for rot in batch_images:
+                batch_images[rot].append(rotated_images[rot])
+        batch_images = {rot: torch.stack(batch_images[rot]) for rot in batch_images}
+        return batch_images
+
+
 
 
 

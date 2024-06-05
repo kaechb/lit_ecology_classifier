@@ -55,9 +55,7 @@ class DataModule(LightningDataModule):
             else:
                 full_dataset = TarImageDataset(self.datapath,self.class_map,  self.priority_classes,rest_classes=self.rest_classes, TTA=self.TTA,train=True)
 
-
             print("Number of classes:", len(self.class_map))
-
             # Calculate dataset splits
             train_size = int(self.train_split * len(full_dataset))
             val_size = int(self.val_split * len(full_dataset))
@@ -84,13 +82,13 @@ class DataModule(LightningDataModule):
         Returns:
             DataLoader: DataLoader object for the training dataset.
         """
-        # Use a distributed sampler if multiple GPUs are available and multi-processing is enabled
+
 
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            sampler=sampler,
+            sampler=None,
             num_workers= 4,
             pin_memory=True,
             drop_last=True,
@@ -122,7 +120,7 @@ class DataModule(LightningDataModule):
                 num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
-                collate_fn=TTA_collate_fn,
+                collate_fn=lambda x:TTA_collate_fn(x,True),
             )
         return loader
 
@@ -142,7 +140,7 @@ class DataModule(LightningDataModule):
                 num_workers= 4,
                 pin_memory=True,
                 drop_last=False,
-                collate_fn=TTA_collate_fn,
+                collate_fn=lambda x:TTA_collate_fn(x,True),
             )
         else:
             loader = DataLoader(
@@ -171,7 +169,7 @@ class DataModule(LightningDataModule):
                 num_workers= 4,
                 pin_memory=False,
                 drop_last=False,
-                collate_fn=TTA_collate_fn,
+                collate_fn=lambda x:TTA_collate_fn(x,False),
             )
         else:
             loader = DataLoader(

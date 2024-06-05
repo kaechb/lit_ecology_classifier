@@ -79,5 +79,5 @@ if __name__ == "__main__":
 
     predictions = read_predictions(args.predictions_priority_file_path)
     predictions_rest = read_predictions(args.predictions_rest_file_path)
-    print(predictions)
+
     extract_priority_class_images(args.output_base_dir, predictions, predictions_rest)
