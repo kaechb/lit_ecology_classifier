@@ -14,7 +14,7 @@ from torch import nn
 from torch.autograd import Variable
 import tarfile
 import os
-
+from sklearn.metrics import roc_auc_score
 class FocalLoss(nn.Module):
     def __init__(self, gamma=0, alpha=None, size_average=True):
         super(FocalLoss, self).__init__()
@@ -86,7 +86,7 @@ def gmean(input_x, dim):
     return torch.exp(torch.mean(log_x, dim=dim))
 
 
-def plot_confusion_matrix(all_labels, all_preds, class_names):
+def plot_confusion_matrix(all_labels, all_preds, class_names,wandb=False,path=''):
     """
     Plot and return confusion matrices (absolute and normalized).
 
@@ -119,7 +119,25 @@ def plot_confusion_matrix(all_labels, all_preds, class_names):
 
     fig.tight_layout()
     fig2.tight_layout()
-    return fig, fig2
+    if wandb:
+
+        self.logger.log_image(
+            key="test_confusion_matrix", images=[fig], step=0
+        )
+        self.logger.log_image(
+            key="test_confusion_matrix_norm",
+            images=[fig2],
+            step=0,
+        )
+    else:
+
+            fig.savefig(
+                f"{path}/test_confusion_matrix_test_set.png"
+            )
+            fig2.savefig(
+                f"{path}/test_confusion_matrix_normalized_test_set.png"
+            )
+
 
 def cvd_colormap():
     """
@@ -422,3 +440,238 @@ def _extract_class_map(tar_or_dir_path):
     class_map = {class_name: idx for idx, class_name in enumerate(sorted_class_names)}
 
     return class_map
+
+def compute_roc_auc(all_labels, all_scores, debug=False): #debug logs some figures in a debug folder
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import roc_auc_score, roc_curve
+    from sklearn.preprocessing import label_binarize
+    import numpy as np
+    import os
+
+    # Ensure the output path exists
+
+    # Convert tensors to NumPy arrays
+    all_labels_np = all_labels.cpu().numpy()
+    all_scores_np = all_scores.cpu().numpy()
+    print("scores",all_scores_np.min(),all_scores_np.max())
+    # Get unique class labels
+    class_labels = np.unique(all_labels_np)
+
+    # Binarize the labels for multi-class ROC computation
+    all_labels_binarized = label_binarize(all_labels_np, classes=class_labels)
+
+    # Compute AUC for each class, plot score distributions, and plot ROC curves
+    auc_list = []
+    for i, class_label in enumerate(class_labels):
+        y_true = all_labels_binarized[:, i]
+        y_scores = all_scores_np[:, i]
+
+        # Check if both classes are present
+        if len(np.unique(y_true)) > 1:
+            # Compute AUC for the class
+            auc_score = roc_auc_score(y_true, y_scores)
+            auc_list.append(auc_score)
+
+            # Compute ROC curve
+            fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+            if debug:
+                os.makedirs('debug', exist_ok=True)
+                # Plot ROC curve
+                plt.figure()
+                plt.plot(
+                    fpr,
+                    tpr,
+                    color='blue',
+                    lw=2,
+                    label='ROC curve (AUC = %0.2f)' % auc_score
+                )
+                plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+                plt.xlim([0.0, 1.0])
+                plt.ylim([0.0, 1.05])
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.title('ROC Curve for Class {}'.format(class_label))
+                plt.legend(loc="lower right")
+                plt.grid(True)
+                plt.tight_layout()
+                plt.savefig(
+                    os.path.join(
+                        'debug', 'roc_curve_class_{}.png'.format(class_label)
+                    )
+                )
+                plt.close()
+        else:
+            # If only one class present in y_true, AUC and ROC are not defined
+            auc_score = float('nan')
+            auc_list.append(auc_score)
+            # Skip plotting ROC curve
+            pass
+
+        # Plot score distribution for the class
+        if debug:
+            plt.figure()
+            plt.hist(
+                y_scores[y_true == 1],
+                bins=50,
+                alpha=0.5,
+                label='Positive (Class {})'.format(class_label),
+                color='blue',
+            )
+            plt.hist(
+                y_scores[y_true == 0],
+                bins=50,
+                alpha=0.5,
+                label='Negative (Other Classes)',
+                color='orange',
+            )
+            plt.title('Score Distribution for Class {}, AUC: {:.2f}'.format(class_label, auc_score))
+            plt.xlabel('Predicted Score')
+            plt.ylabel('Frequency')
+            plt.legend(loc='best')
+            plt.yscale('log')
+            plt.grid(True)
+            plt.tight_layout()
+            plt.savefig(
+                os.path.join(
+                    'debug', 'score_distribution_class_{}.png'.format(class_label)
+                )
+            )
+            plt.close()
+
+    # Compute macro-average AUC (ignoring NaN values)
+    valid_auc_scores = [auc for auc in auc_list if not np.isnan(auc)]
+    if valid_auc_scores:
+        roc_auc_macro = np.mean(valid_auc_scores)
+    else:
+        roc_auc_macro = float('nan')
+
+    return roc_auc_macro
+
+
+def compute_macro_precision_recall(all_labels, predicted_labels):
+    from sklearn.metrics import precision_score, recall_score
+    import numpy as np
+
+    # Binarize the predicted scores by applying a 0.5 threshold
+    all_labels_np = all_labels.cpu().numpy()
+
+    # Get unique class labels
+    class_labels = np.unique(all_labels_np)
+    n_classes = len(class_labels)
+
+    precision_list = []
+    recall_list = []
+    f1_scores_list = []
+
+    for i, class_label in enumerate(class_labels):
+        # For each class, calculate precision and recall
+        y_true = (all_labels_np == i).astype(int)  # Class-specific true labels
+        y_pred = (predicted_labels == i).cpu().numpy().astype(int)
+
+        precision = precision_score(y_true, y_pred, zero_division=0)
+        recall = recall_score(y_true, y_pred, zero_division=0)
+
+        precision_list.append(precision)
+        recall_list.append(recall)
+        if precision + recall > 0:
+            f1_score_class = 2 * (precision * recall) / (precision + recall)
+        else:
+            f1_score_class = 0.0  # Handle cases where precision and recall are both 0
+
+        # Append F1 score for the current class to the list
+        f1_scores_list.append(f1_score_class)
+
+    # Compute macro average precision and recall (mean of precision and recall across all classes)
+    macro_precision = np.mean(precision_list)
+    macro_recall = np.mean(recall_list)
+    macro_f1 = np.mean(f1_scores_list)
+
+    return macro_precision, macro_recall, macro_f1
+
+
+
+def compute_roc_auc_binary(all_labels, all_scores, debug=False):
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import roc_auc_score, roc_curve
+    import numpy as np
+    import os
+
+    # Ensure the output path exists
+
+    # Convert tensors to NumPy arrays
+    all_labels_np = all_labels.cpu().numpy()
+    all_scores_np = all_scores.cpu().numpy()
+
+    # Create binary labels: 0 for class 0 (negative), 1 for all other classes (positive)
+    binary_labels = np.where(all_labels_np == 0, 0, 1)
+
+    # Compute scores for the positive class (all classes except 0)
+    # Sum the scores of all positive classes to get a single score per sample
+    positive_scores = all_scores_np[:, 1:].sum(axis=1)
+
+    # Use the positive class scores as the prediction scores
+    y_true = binary_labels
+    y_scores = positive_scores
+
+    # Compute AUC for the binary classification
+    if len(np.unique(y_true)) > 1:
+        auc_score = roc_auc_score(y_true, y_scores)
+    else:
+        # If only one class present in y_true, AUC is not defined
+        auc_score = float('nan')
+    if debug:
+        # Compute ROC curve
+        fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+        os.makedirs('debug', exist_ok=True)
+
+        # Plot ROC curve
+        plt.figure()
+        plt.plot(
+            fpr,
+            tpr,
+            color='blue',
+            lw=2,
+            label='ROC curve (AUC = %0.2f)' % auc_score
+        )
+        plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('ROC Curve for Binary Classification (Class 0 vs. Others)')
+        plt.legend(loc="lower right")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join('debug', 'roc_curve_binary.png')
+        )
+        plt.close()
+
+        # Plot score distribution for the binary classification
+        plt.figure()
+        plt.hist(
+            y_scores[y_true == 1],
+            bins=50,
+            alpha=0.5,
+            label='Positive (Classes 1 and above)',
+            color='blue',
+        )
+        plt.hist(
+            y_scores[y_true == 0],
+            bins=50,
+            alpha=0.5,
+            label='Negative (Class 0)',
+            color='orange',
+        )
+        plt.title('Score Distribution for Binary Classification\nAUC: {:.2f}'.format(auc_score))
+        plt.xlabel('Aggregated Positive Class Score')
+        plt.ylabel('Frequency')
+        plt.legend(loc='best')
+        plt.yscale('log')
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join('debug', 'score_distribution_binary.png')
+        )
+        plt.close()
+    return auc_score

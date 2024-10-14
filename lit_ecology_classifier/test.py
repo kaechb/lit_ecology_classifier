@@ -48,7 +48,7 @@ if __name__ == '__main__':
     model.hparams.use_wandb = False
     # model.hparams.priority_classes = "config/priority.json" #TODO remove this
     data_module = DataModule(**model.hparams)
-    data_module.setup("predict")
+    data_module.setup("test")
 
     model.load_datamodule(data_module)
 
